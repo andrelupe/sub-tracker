@@ -18,7 +18,11 @@ Box<Subscription> get _box => HiveStorageService.subscriptionsBox;
 class SubscriptionsNotifier extends _$SubscriptionsNotifier {
   @override
   List<Subscription> build() {
-    return _loadFromStorage();
+    final data = _loadFromStorage();
+    // ignore: avoid_print
+    print(
+        'SubscriptionsNotifier: Loaded ${data.length} subscriptions from storage');
+    return data;
   }
 
   List<Subscription> _loadFromStorage() {

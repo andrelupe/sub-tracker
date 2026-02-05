@@ -11,12 +11,14 @@ flutter pub get
 # Generate code
 dart run build_runner build --delete-conflicting-outputs
 
-# Run on Chrome
-flutter run -d chrome
+# Run on Chrome (use fixed port for data persistence)
+flutter run -d chrome --web-port=3000
 
 # Run on macOS (requires Xcode)
 flutter run -d macos
 ```
+
+> **Note:** On web, always use `--web-port=3000` to ensure data persists between sessions. Each port has isolated storage.
 
 ## Features
 
@@ -44,6 +46,6 @@ lib/
 └── main.dart
 ```
 
-## Note
+## Data Persistence
 
-Data is stored in memory and will be lost when the app closes. For persistent storage, you'll need to add a database (e.g., Drift, Hive, SharedPreferences).
+Data is persisted locally using Hive (IndexedDB on web). On web, use a fixed port (`--web-port=3000`) to ensure data persists between sessions.

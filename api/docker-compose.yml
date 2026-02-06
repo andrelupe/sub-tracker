@@ -1,0 +1,19 @@
+services:
+  subtracker-api:
+    build:
+      context: ./src/SubTracker.Api
+      dockerfile: Dockerfile
+    container_name: subtracker-api
+    ports:
+      - "5080:8080"
+    volumes:
+      - subtracker-data:/data
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__Default=Data Source=/data/subtracker.db
+      - Pushover__ApiToken=${PUSHOVER_API_TOKEN:-}
+      - Pushover__UserKey=${PUSHOVER_USER_KEY:-}
+    restart: unless-stopped
+
+volumes:
+  subtracker-data:

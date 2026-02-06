@@ -6,18 +6,33 @@ import 'package:subtracker/features/subscriptions/providers/subscription_provide
 import 'package:subtracker/features/subscriptions/widgets/monthly_summary_card.dart';
 import 'package:subtracker/features/subscriptions/widgets/subscription_list_tile.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final subscriptions = ref.watch(subscriptionsListProvider);
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final allSubscriptions = ref.watch(subscriptionsListProvider);
+    final filteredSubscriptions = ref.watch(filteredSubscriptionsProvider);
+    final searchQuery = ref.watch(searchQueryProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('SubTracker'),
       ),
-      body: subscriptions.isEmpty
+      body: allSubscriptions.isEmpty
           ? _EmptyState(onAdd: () => context.push(AppRoutes.addSubscription))
           : RefreshIndicator(
               onRefresh: () async {
@@ -27,34 +42,70 @@ class HomeScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(16),
                 children: [
                   const MonthlySummaryCard(),
+                  const SizedBox(height: 16),
+                  SearchBar(
+                    controller: _searchController,
+                    hintText: 'Search subscriptions...',
+                    leading: const Padding(
+                      padding: EdgeInsets.only(left: 8),
+                      child: Icon(Icons.search),
+                    ),
+                    trailing: searchQuery.isNotEmpty
+                        ? [
+                            IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                ref.read(searchQueryProvider.notifier).clear();
+                              },
+                            ),
+                          ]
+                        : null,
+                    onChanged: (value) {
+                      ref.read(searchQueryProvider.notifier).update(value);
+                    },
+                    padding: const WidgetStatePropertyAll(
+                      EdgeInsets.symmetric(horizontal: 8),
+                    ),
+                    elevation: const WidgetStatePropertyAll(0),
+                    backgroundColor: WidgetStatePropertyAll(
+                      Theme.of(context).colorScheme.surfaceContainerHighest,
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Active Subscriptions',
+                        searchQuery.isEmpty
+                            ? 'Active Subscriptions'
+                            : 'Search Results',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       Text(
-                        '${subscriptions.length}',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
+                        '${filteredSubscriptions.length}',
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  ...subscriptions.map(
-                    (sub) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: SubscriptionListTile(
-                        subscription: sub,
-                        onTap: () => context.push(
-                          AppRoutes.editSubscriptionPath(sub.id),
+                  if (filteredSubscriptions.isEmpty && searchQuery.isNotEmpty)
+                    _NoResultsState(query: searchQuery)
+                  else
+                    ...filteredSubscriptions.map(
+                      (sub) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: SubscriptionListTile(
+                          subscription: sub,
+                          onTap: () => context.push(
+                            AppRoutes.editSubscriptionPath(sub.id),
+                          ),
                         ),
                       ),
                     ),
-                  ),
                   const SizedBox(height: 80),
                 ],
               ),
@@ -107,6 +158,41 @@ class _EmptyState extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _NoResultsState extends StatelessWidget {
+  const _NoResultsState({required this.query});
+
+  final String query;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.search_off,
+            size: 48,
+            color: Theme.of(context).colorScheme.outline,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No results for "$query"',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Try a different search term',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+        ],
       ),
     );
   }

@@ -216,8 +216,28 @@ class _SubscriptionByIdProviderElement
   String get id => (origin as SubscriptionByIdProvider).id;
 }
 
+String _$filteredSubscriptionsHash() =>
+    r'b95aae892dfd8ba3706244f5964e86b4e289f95c';
+
+/// Provider that filters active subscriptions based on the search query.
+/// Searches in name, description, and category label.
+///
+/// Copied from [filteredSubscriptions].
+@ProviderFor(filteredSubscriptions)
+final filteredSubscriptionsProvider =
+    AutoDisposeProvider<List<Subscription>>.internal(
+  filteredSubscriptions,
+  name: r'filteredSubscriptionsProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$filteredSubscriptionsHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef FilteredSubscriptionsRef = AutoDisposeProviderRef<List<Subscription>>;
 String _$subscriptionsNotifierHash() =>
-    r'716a13c12104bec72b70ff7ddbc09da667c80f67';
+    r'1f7884cb7e4413cf23475e541561f4725478c667';
 
 /// Main provider that holds the list of all subscriptions.
 /// This is the single source of truth - all other providers derive from this.
@@ -236,5 +256,22 @@ final subscriptionsNotifierProvider =
 );
 
 typedef _$SubscriptionsNotifier = Notifier<List<Subscription>>;
+String _$searchQueryHash() => r'b07ebd22fb9cb0db36c8d833cc6e21f4fcbd9b7b';
+
+/// Provider for the search query state.
+///
+/// Copied from [SearchQuery].
+@ProviderFor(SearchQuery)
+final searchQueryProvider =
+    AutoDisposeNotifierProvider<SearchQuery, String>.internal(
+  SearchQuery.new,
+  name: r'searchQueryProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$searchQueryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$SearchQuery = AutoDisposeNotifier<String>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

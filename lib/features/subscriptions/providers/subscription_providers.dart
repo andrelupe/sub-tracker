@@ -111,3 +111,39 @@ Subscription? subscriptionById(SubscriptionByIdRef ref, String id) {
     return null;
   }
 }
+
+/// Provider for the search query state.
+@riverpod
+class SearchQuery extends _$SearchQuery {
+  @override
+  String build() => '';
+
+  void update(String query) {
+    state = query;
+  }
+
+  void clear() {
+    state = '';
+  }
+}
+
+/// Provider that filters active subscriptions based on the search query.
+/// Searches in name, description, and category label.
+@riverpod
+List<Subscription> filteredSubscriptions(FilteredSubscriptionsRef ref) {
+  final query = ref.watch(searchQueryProvider).toLowerCase().trim();
+  final subscriptions = ref.watch(subscriptionsListProvider);
+
+  if (query.isEmpty) {
+    return subscriptions;
+  }
+
+  return subscriptions.where((sub) {
+    final nameMatch = sub.name.toLowerCase().contains(query);
+    final descriptionMatch =
+        sub.description?.toLowerCase().contains(query) ?? false;
+    final categoryMatch = sub.category.label.toLowerCase().contains(query);
+
+    return nameMatch || descriptionMatch || categoryMatch;
+  }).toList();
+}

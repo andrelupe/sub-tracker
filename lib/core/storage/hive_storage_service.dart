@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:subtracker/core/storage/dummy_data.dart';
 import 'package:subtracker/features/subscriptions/models/billing_cycle.dart';
 import 'package:subtracker/features/subscriptions/models/subscription.dart';
 import 'package:subtracker/features/subscriptions/models/subscription_category.dart';
@@ -26,8 +27,31 @@ class HiveStorageService {
     // Open boxes
     await Hive.openBox<Subscription>(_subscriptionsBoxName);
 
+    // Load dummy data in debug mode if box is empty
+    if (kDebugMode) {
+      await _loadDummyDataIfEmpty();
+    }
+
     _initialized = true;
     debugPrint('HiveStorageService: Initialized successfully');
+  }
+
+  /// Loads dummy data for development if the subscriptions box is empty.
+  static Future<void> _loadDummyDataIfEmpty() async {
+    final box = Hive.box<Subscription>(_subscriptionsBoxName);
+
+    if (box.isEmpty) {
+      debugPrint('HiveStorageService: Loading dummy data for development...');
+      final dummySubscriptions = DummyData.generateSubscriptions();
+
+      for (final subscription in dummySubscriptions) {
+        await box.put(subscription.id, subscription);
+      }
+
+      debugPrint(
+        'HiveStorageService: Loaded ${dummySubscriptions.length} dummy subscriptions',
+      );
+    }
   }
 
   /// Returns the subscriptions box.

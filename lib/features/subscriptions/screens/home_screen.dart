@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:subtracker/core/constants/app_constants.dart';
 import 'package:subtracker/core/router/app_router.dart';
 import 'package:subtracker/features/subscriptions/models/sort_option.dart';
 import 'package:subtracker/features/subscriptions/providers/subscription_providers.dart';
@@ -127,6 +128,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                       ),
                     ),
+                  const SizedBox(height: 32),
+                  const _VersionFooter(),
                   const SizedBox(height: 80),
                 ],
               ),
@@ -220,6 +223,22 @@ class _NoResultsState extends StatelessWidget {
                 ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _VersionFooter extends StatelessWidget {
+  const _VersionFooter();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        'v${AppConstants.version}',
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.outline,
+            ),
       ),
     );
   }

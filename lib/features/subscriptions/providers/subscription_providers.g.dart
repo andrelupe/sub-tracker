@@ -217,7 +217,7 @@ class _SubscriptionByIdProviderElement
 }
 
 String _$filteredSubscriptionsHash() =>
-    r'b95aae892dfd8ba3706244f5964e86b4e289f95c';
+    r'634e8ccfdc5a6246ee2e98d3741fbc0e8302975a';
 
 /// Provider that filters active subscriptions based on the search query.
 /// Searches in name, description, and category label.
@@ -236,6 +236,23 @@ final filteredSubscriptionsProvider =
 );
 
 typedef FilteredSubscriptionsRef = AutoDisposeProviderRef<List<Subscription>>;
+String _$hasActiveFiltersHash() => r'14a2b6544f748a4b1ed6b77859ba80b94c1ab884';
+
+/// Returns true if any filter or sort is active (non-default).
+///
+/// Copied from [hasActiveFilters].
+@ProviderFor(hasActiveFilters)
+final hasActiveFiltersProvider = AutoDisposeProvider<bool>.internal(
+  hasActiveFilters,
+  name: r'hasActiveFiltersProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$hasActiveFiltersHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef HasActiveFiltersRef = AutoDisposeProviderRef<bool>;
 String _$subscriptionsNotifierHash() =>
     r'1f7884cb7e4413cf23475e541561f4725478c667';
 
@@ -273,5 +290,59 @@ final searchQueryProvider =
 );
 
 typedef _$SearchQuery = AutoDisposeNotifier<String>;
+String _$categoryFilterHash() => r'ef9e96c70615e3974cca3c7ecc26bfe2905fe447';
+
+/// Provider for the selected category filter.
+/// null means "All Categories".
+///
+/// Copied from [CategoryFilter].
+@ProviderFor(CategoryFilter)
+final categoryFilterProvider =
+    AutoDisposeNotifierProvider<CategoryFilter, SubscriptionCategory?>.internal(
+  CategoryFilter.new,
+  name: r'categoryFilterProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$categoryFilterHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$CategoryFilter = AutoDisposeNotifier<SubscriptionCategory?>;
+String _$sortByHash() => r'e02daf01cac0ab4d7242db3544513da000be8f15';
+
+/// Provider for the current sort option.
+///
+/// Copied from [SortBy].
+@ProviderFor(SortBy)
+final sortByProvider = AutoDisposeNotifierProvider<SortBy, SortOption>.internal(
+  SortBy.new,
+  name: r'sortByProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$sortByHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$SortBy = AutoDisposeNotifier<SortOption>;
+String _$sortAscendingHash() => r'361c60808efbf979242ac54040dde891eb043bbe';
+
+/// Provider for the sort direction.
+/// true = ascending, false = descending.
+///
+/// Copied from [SortAscending].
+@ProviderFor(SortAscending)
+final sortAscendingProvider =
+    AutoDisposeNotifierProvider<SortAscending, bool>.internal(
+  SortAscending.new,
+  name: r'sortAscendingProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$sortAscendingHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$SortAscending = AutoDisposeNotifier<bool>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

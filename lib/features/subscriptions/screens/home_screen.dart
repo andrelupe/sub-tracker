@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:subtracker/core/router/app_router.dart';
+import 'package:subtracker/features/subscriptions/models/sort_option.dart';
 import 'package:subtracker/features/subscriptions/providers/subscription_providers.dart';
+import 'package:subtracker/features/subscriptions/widgets/filter_sort_bar.dart';
 import 'package:subtracker/features/subscriptions/widgets/monthly_summary_card.dart';
 import 'package:subtracker/features/subscriptions/widgets/subscription_list_tile.dart';
 
@@ -22,15 +24,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.dispose();
   }
 
+  void _clearAllFilters(WidgetRef ref) {
+    _searchController.clear();
+    ref.read(searchQueryProvider.notifier).clear();
+    ref.read(categoryFilterProvider.notifier).clear();
+    ref.read(sortByProvider.notifier).select(SortOption.nextBillingDate);
+    ref.read(sortAscendingProvider.notifier).set(true);
+  }
+
   @override
   Widget build(BuildContext context) {
     final allSubscriptions = ref.watch(subscriptionsListProvider);
     final filteredSubscriptions = ref.watch(filteredSubscriptionsProvider);
     final searchQuery = ref.watch(searchQueryProvider);
+    final hasActiveFilters = ref.watch(hasActiveFiltersProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('SubTracker'),
+        actions: [
+          if (hasActiveFilters)
+            TextButton.icon(
+              onPressed: () => _clearAllFilters(ref),
+              icon: const Icon(Icons.clear_all),
+              label: const Text('Clear'),
+            ),
+        ],
       ),
       body: allSubscriptions.isEmpty
           ? _EmptyState(onAdd: () => context.push(AppRoutes.addSubscription))
@@ -72,14 +91,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       Theme.of(context).colorScheme.surfaceContainerHighest,
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  const FilterSortBar(),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        searchQuery.isEmpty
-                            ? 'Active Subscriptions'
-                            : 'Search Results',
+                        hasActiveFilters
+                            ? 'Filtered Results'
+                            : 'Active Subscriptions',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       Text(
@@ -92,7 +113,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  if (filteredSubscriptions.isEmpty && searchQuery.isNotEmpty)
+                  if (filteredSubscriptions.isEmpty && hasActiveFilters)
                     _NoResultsState(query: searchQuery)
                   else
                     ...filteredSubscriptions.map(
@@ -170,24 +191,30 @@ class _NoResultsState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasSearchQuery = query.isNotEmpty;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Icons.search_off,
+            hasSearchQuery ? Icons.search_off : Icons.filter_list_off,
             size: 48,
             color: Theme.of(context).colorScheme.outline,
           ),
           const SizedBox(height: 16),
           Text(
-            'No results for "$query"',
+            hasSearchQuery
+                ? 'No results for "$query"'
+                : 'No matching subscriptions',
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
           Text(
-            'Try a different search term',
+            hasSearchQuery
+                ? 'Try a different search term'
+                : 'Try adjusting your filters',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),

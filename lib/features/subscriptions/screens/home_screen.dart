@@ -35,110 +35,129 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final allSubscriptions = ref.watch(subscriptionsListProvider);
-    final filteredSubscriptions = ref.watch(filteredSubscriptionsProvider);
+    final asyncSubscriptions = ref.watch(subscriptionsNotifierProvider);
     final searchQuery = ref.watch(searchQueryProvider);
-    final hasActiveFilters = ref.watch(hasActiveFiltersProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('SubTracker'),
         actions: [
-          if (hasActiveFilters)
-            TextButton.icon(
-              onPressed: () => _clearAllFilters(ref),
-              icon: const Icon(Icons.clear_all),
-              label: const Text('Clear'),
-            ),
+          if (asyncSubscriptions.hasValue)
+            if (ref.watch(hasActiveFiltersProvider))
+              TextButton.icon(
+                onPressed: () => _clearAllFilters(ref),
+                icon: const Icon(Icons.clear_all),
+                label: const Text('Clear'),
+              ),
         ],
       ),
-      body: allSubscriptions.isEmpty
-          ? _EmptyState(onAdd: () => context.push(AppRoutes.addSubscription))
-          : RefreshIndicator(
-              onRefresh: () async {
-                ref.invalidate(subscriptionsListProvider);
-              },
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  const MonthlySummaryCard(),
-                  const SizedBox(height: 16),
-                  SearchBar(
-                    controller: _searchController,
-                    hintText: 'Search subscriptions...',
-                    leading: const Padding(
-                      padding: EdgeInsets.only(left: 8),
-                      child: Icon(Icons.search),
-                    ),
-                    trailing: searchQuery.isNotEmpty
-                        ? [
-                            IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _searchController.clear();
-                                ref.read(searchQueryProvider.notifier).clear();
-                              },
-                            ),
-                          ]
-                        : null,
-                    onChanged: (value) {
-                      ref.read(searchQueryProvider.notifier).update(value);
-                    },
-                    padding: const WidgetStatePropertyAll(
-                      EdgeInsets.symmetric(horizontal: 8),
-                    ),
-                    elevation: const WidgetStatePropertyAll(0),
-                    backgroundColor: WidgetStatePropertyAll(
-                      Theme.of(context).colorScheme.surfaceContainerHighest,
-                    ),
+      body: asyncSubscriptions.when(
+        data: (allSubscriptions) {
+          if (allSubscriptions.isEmpty) {
+            return _EmptyState(
+              onAdd: () => context.push(AppRoutes.addSubscription),
+            );
+          }
+
+          final filteredSubscriptions =
+              ref.watch(filteredSubscriptionsProvider);
+          final hasActiveFilters = ref.watch(hasActiveFiltersProvider);
+
+          return RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(subscriptionsNotifierProvider);
+            },
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                const MonthlySummaryCard(),
+                const SizedBox(height: 16),
+                SearchBar(
+                  controller: _searchController,
+                  hintText: 'Search subscriptions...',
+                  leading: const Padding(
+                    padding: EdgeInsets.only(left: 8),
+                    child: Icon(Icons.search),
                   ),
-                  const SizedBox(height: 12),
-                  const FilterSortBar(),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        hasActiveFilters
-                            ? 'Filtered Results'
-                            : 'Active Subscriptions',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      Text(
-                        '${filteredSubscriptions.length}',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  if (filteredSubscriptions.isEmpty && hasActiveFilters)
-                    _NoResultsState(query: searchQuery)
-                  else
-                    ...filteredSubscriptions.map(
-                      (sub) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: SubscriptionListTile(
-                          subscription: sub,
-                          onTap: () => context.push(
-                            AppRoutes.editSubscriptionPath(sub.id),
+                  trailing: searchQuery.isNotEmpty
+                      ? [
+                          IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchController.clear();
+                              ref.read(searchQueryProvider.notifier).clear();
+                            },
                           ),
+                        ]
+                      : null,
+                  onChanged: (value) {
+                    ref.read(searchQueryProvider.notifier).update(value);
+                  },
+                  padding: const WidgetStatePropertyAll(
+                    EdgeInsets.symmetric(horizontal: 8),
+                  ),
+                  elevation: const WidgetStatePropertyAll(0),
+                  backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).colorScheme.surfaceContainerHighest,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const FilterSortBar(),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      hasActiveFilters
+                          ? 'Filtered Results'
+                          : 'Active Subscriptions',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    Text(
+                      '${filteredSubscriptions.length}',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                if (filteredSubscriptions.isEmpty && hasActiveFilters)
+                  _NoResultsState(query: searchQuery)
+                else
+                  ...filteredSubscriptions.map(
+                    (sub) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: SubscriptionListTile(
+                        subscription: sub,
+                        onTap: () => context.push(
+                          AppRoutes.editSubscriptionPath(sub.id),
                         ),
                       ),
                     ),
-                  const SizedBox(height: 32),
-                  const _VersionFooter(),
-                  const SizedBox(height: 80),
-                ],
-              ),
+                  ),
+                const SizedBox(height: 32),
+                const _VersionFooter(),
+                const SizedBox(height: 80),
+              ],
             ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.addSubscription),
-        icon: const Icon(Icons.add),
-        label: const Text('Add'),
+          );
+        },
+        loading: () => const Center(
+          child: CircularProgressIndicator(),
+        ),
+        error: (error, _) => _ErrorState(
+          message: error.toString(),
+          onRetry: () => ref.invalidate(subscriptionsNotifierProvider),
+        ),
       ),
+      floatingActionButton: asyncSubscriptions.hasValue
+          ? FloatingActionButton.extended(
+              onPressed: () => context.push(AppRoutes.addSubscription),
+              icon: const Icon(Icons.add),
+              label: const Text('Add'),
+            )
+          : null,
     );
   }
 }
@@ -179,6 +198,51 @@ class _EmptyState extends StatelessWidget {
               onPressed: onAdd,
               icon: const Icon(Icons.add),
               label: const Text('Add Subscription'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ErrorState extends StatelessWidget {
+  const _ErrorState({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Failed to load subscriptions',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
             ),
           ],
         ),

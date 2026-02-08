@@ -70,7 +70,7 @@ class MonthlySummaryCard extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Gastos Mensais',
+                'Monthly Spending',
                 style: textTheme.titleSmall?.copyWith(
                   color: colorScheme.onPrimaryContainer.withOpacity(0.7),
                 ),
@@ -102,7 +102,7 @@ class MonthlySummaryCard extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Gastos Mensais',
+                'Monthly Spending',
                 style: textTheme.titleSmall?.copyWith(
                   color: colorScheme.onPrimaryContainer.withOpacity(0.7),
                 ),

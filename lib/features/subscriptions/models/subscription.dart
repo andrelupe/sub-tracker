@@ -1,13 +1,9 @@
-import 'package:hive/hive.dart';
 import 'package:subtracker/core/extensions/datetime_extensions.dart';
 import 'package:subtracker/features/subscriptions/models/billing_cycle.dart';
 import 'package:subtracker/features/subscriptions/models/subscription_category.dart';
 
-part 'subscription.g.dart';
-
-@HiveType(typeId: 0)
-class Subscription extends HiveObject {
-  Subscription({
+class Subscription {
+  const Subscription({
     required this.id,
     required this.name,
     this.description,
@@ -19,45 +15,68 @@ class Subscription extends HiveObject {
     required this.nextBillingDate,
     this.isActive = true,
     this.url,
+    this.reminderDaysBefore = 2,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
-  @HiveField(0)
   final String id;
-
-  @HiveField(1)
   final String name;
-
-  @HiveField(2)
   final String? description;
-
-  @HiveField(3)
   final double amount;
-
-  @HiveField(4)
   final String currency;
-
-  @HiveField(5)
   final BillingCycle billingCycle;
-
-  @HiveField(6)
   final SubscriptionCategory category;
-
-  @HiveField(7)
   final DateTime startDate;
-
-  @HiveField(8)
   final DateTime nextBillingDate;
-
-  @HiveField(9)
   final bool isActive;
-
-  @HiveField(10)
   final String? url;
+  final int reminderDaysBefore;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   double get monthlyAmount => billingCycle.monthlyEquivalent(amount);
   double get yearlyAmount => billingCycle.yearlyEquivalent(amount);
   int get daysUntilNextBilling => nextBillingDate.daysFromNow;
-  bool get isDueSoon => isActive && daysUntilNextBilling <= 7;
+  bool get isDueSoon => isActive && daysUntilNextBilling <= reminderDaysBefore;
+
+  factory Subscription.fromJson(Map<String, dynamic> json) {
+    return Subscription(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      description: json['description'] as String?,
+      amount: (json['amount'] as num).toDouble(),
+      currency: json['currency'] as String,
+      billingCycle: BillingCycle.fromJson(json['billingCycle'] as int),
+      category: SubscriptionCategory.fromJson(json['category'] as int),
+      startDate: DateTime.parse(json['startDate'] as String),
+      nextBillingDate: DateTime.parse(json['nextBillingDate'] as String),
+      isActive: json['isActive'] as bool,
+      url: json['url'] as String?,
+      reminderDaysBefore: json['reminderDaysBefore'] as int,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'amount': amount,
+      'currency': currency,
+      'billingCycle': billingCycle.toJson(),
+      'category': category.toJson(),
+      'startDate': startDate.toIso8601String(),
+      'nextBillingDate': nextBillingDate.toIso8601String(),
+      'isActive': isActive,
+      'url': url,
+      'reminderDaysBefore': reminderDaysBefore,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
+    };
+  }
 
   Subscription copyWith({
     String? id,
@@ -71,6 +90,9 @@ class Subscription extends HiveObject {
     DateTime? nextBillingDate,
     bool? isActive,
     String? url,
+    int? reminderDaysBefore,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return Subscription(
       id: id ?? this.id,
@@ -84,6 +106,9 @@ class Subscription extends HiveObject {
       nextBillingDate: nextBillingDate ?? this.nextBillingDate,
       isActive: isActive ?? this.isActive,
       url: url ?? this.url,
+      reminderDaysBefore: reminderDaysBefore ?? this.reminderDaysBefore,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

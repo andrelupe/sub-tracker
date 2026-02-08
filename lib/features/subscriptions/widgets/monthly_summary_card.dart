@@ -7,10 +7,7 @@ class MonthlySummaryCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final monthlyTotal = ref.watch(monthlyTotalProvider);
-    final yearlyTotal = ref.watch(yearlyTotalProvider);
-    final dueSoon = ref.watch(dueSoonSubscriptionsProvider);
-
+    final subscriptionsAsync = ref.watch(subscriptionsNotifierProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -18,49 +15,108 @@ class MonthlySummaryCard extends ConsumerWidget {
       color: colorScheme.primaryContainer,
       child: Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Monthly Spending',
-              style: textTheme.titleSmall?.copyWith(
-                color: colorScheme.onPrimaryContainer.withOpacity(0.7),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '€${monthlyTotal.toStringAsFixed(2)}',
-              style: textTheme.headlineLarge?.copyWith(
-                color: colorScheme.onPrimaryContainer,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
+        child: subscriptionsAsync.when(
+          data: (subscriptions) {
+            final monthlyTotal = ref.read(monthlyTotalProvider);
+            final yearlyTotal = ref.read(yearlyTotalProvider);
+            final dueSoon = ref.read(dueSoonSubscriptionsProvider);
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: _SummaryItem(
-                    label: 'Yearly',
-                    value: '€${yearlyTotal.toStringAsFixed(2)}',
-                    icon: Icons.calendar_today_outlined,
+                Text(
+                  'Monthly Spending',
+                  style: textTheme.titleSmall?.copyWith(
+                    color: colorScheme.onPrimaryContainer.withOpacity(0.7),
                   ),
                 ),
-                Container(
-                  width: 1,
-                  height: 40,
-                  color: colorScheme.onPrimaryContainer.withOpacity(0.2),
-                ),
-                Expanded(
-                  child: _SummaryItem(
-                    label: 'Due Soon',
-                    value: '${dueSoon.length}',
-                    icon: Icons.notifications_outlined,
-                    highlight: dueSoon.isNotEmpty,
+                const SizedBox(height: 4),
+                Text(
+                  '€${monthlyTotal.toStringAsFixed(2)}',
+                  style: textTheme.headlineLarge?.copyWith(
+                    color: colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
                   ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _SummaryItem(
+                        label: 'Yearly',
+                        value: '€${yearlyTotal.toStringAsFixed(2)}',
+                        icon: Icons.calendar_today_outlined,
+                      ),
+                    ),
+                    Container(
+                      width: 1,
+                      height: 40,
+                      color: colorScheme.onPrimaryContainer.withOpacity(0.2),
+                    ),
+                    Expanded(
+                      child: _SummaryItem(
+                        label: 'Due Soon',
+                        value: '${dueSoon.length}',
+                        icon: Icons.notifications_outlined,
+                        highlight: dueSoon.isNotEmpty,
+                      ),
+                    ),
+                  ],
                 ),
               ],
-            ),
-          ],
+            );
+          },
+          loading: () => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Gastos Mensais',
+                style: textTheme.titleSmall?.copyWith(
+                  color: colorScheme.onPrimaryContainer.withOpacity(0.7),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Loading...',
+                    style: textTheme.headlineLarge?.copyWith(
+                      color: colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          error: (error, stackTrace) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Gastos Mensais',
+                style: textTheme.titleSmall?.copyWith(
+                  color: colorScheme.onPrimaryContainer.withOpacity(0.7),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Failed to load',
+                style: textTheme.headlineLarge?.copyWith(
+                  color: colorScheme.error,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -1,38 +1,24 @@
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:subtracker/core/storage/hive_storage_service.dart';
+import 'package:subtracker/core/providers/api_providers.dart';
 import 'package:subtracker/features/subscriptions/models/billing_cycle.dart';
 import 'package:subtracker/features/subscriptions/models/sort_option.dart';
 import 'package:subtracker/features/subscriptions/models/subscription.dart';
 import 'package:subtracker/features/subscriptions/models/subscription_category.dart';
-import 'package:uuid/uuid.dart';
 
 part 'subscription_providers.g.dart';
 
-const _uuid = Uuid();
-
-Box<Subscription> get _box => HiveStorageService.subscriptionsBox;
-
-/// Main provider that holds the list of all subscriptions.
-/// This is the single source of truth - all other providers derive from this.
+/// Main async notifier for subscriptions
 @Riverpod(keepAlive: true)
 class SubscriptionsNotifier extends _$SubscriptionsNotifier {
   @override
-  List<Subscription> build() {
-    final data = _loadFromStorage();
-    // ignore: avoid_print
-    print(
-        'SubscriptionsNotifier: Loaded ${data.length} subscriptions from storage');
-    return data;
-  }
-
-  List<Subscription> _loadFromStorage() {
-    final list = _box.values.toList()
+  Future<List<Subscription>> build() async {
+    final apiService = ref.read(subscriptionApiServiceProvider);
+    final subscriptions = await apiService.getAllSubscriptions();
+    return subscriptions
       ..sort((a, b) => a.nextBillingDate.compareTo(b.nextBillingDate));
-    return list;
   }
 
-  void create({
+  Future<void> create({
     required String name,
     String? description,
     required double amount,
@@ -41,9 +27,11 @@ class SubscriptionsNotifier extends _$SubscriptionsNotifier {
     required SubscriptionCategory category,
     required DateTime startDate,
     String? url,
-  }) {
-    final subscription = Subscription(
-      id: _uuid.v4(),
+    int reminderDaysBefore = 2,
+  }) async {
+    final apiService = ref.read(subscriptionApiServiceProvider);
+
+    await apiService.createSubscription(
       name: name,
       description: description,
       amount: amount,
@@ -51,128 +39,154 @@ class SubscriptionsNotifier extends _$SubscriptionsNotifier {
       billingCycle: billingCycle,
       category: category,
       startDate: startDate,
-      nextBillingDate: billingCycle.nextBillingDate(startDate),
       url: url,
+      reminderDaysBefore: reminderDaysBefore,
     );
 
-    _box.put(subscription.id, subscription);
-    state = _loadFromStorage();
+    ref.invalidateSelf();
   }
 
-  void update(Subscription subscription) {
-    _box.put(subscription.id, subscription);
-    state = _loadFromStorage();
+  Future<void> updateSubscription(Subscription subscription) async {
+    final apiService = ref.read(subscriptionApiServiceProvider);
+
+    await apiService.updateSubscription(
+      id: subscription.id,
+      name: subscription.name,
+      description: subscription.description,
+      amount: subscription.amount,
+      currency: subscription.currency,
+      billingCycle: subscription.billingCycle,
+      category: subscription.category,
+      startDate: subscription.startDate,
+      url: subscription.url,
+      reminderDaysBefore: subscription.reminderDaysBefore,
+      isActive: subscription.isActive,
+    );
+
+    ref.invalidateSelf();
   }
 
-  void delete(String id) {
-    _box.delete(id);
-    state = _loadFromStorage();
+  Future<void> delete(String id) async {
+    final apiService = ref.read(subscriptionApiServiceProvider);
+    await apiService.deleteSubscription(id);
+    ref.invalidateSelf();
   }
 
-  void toggleActive(String id) {
-    final sub = _box.get(id);
-    if (sub != null) {
-      final updated = sub.copyWith(isActive: !sub.isActive);
-      _box.put(id, updated);
-      state = _loadFromStorage();
-    }
+  Future<void> toggleActive(String id) async {
+    final apiService = ref.read(subscriptionApiServiceProvider);
+
+    // Get current subscription
+    final current = state.valueOrNull ?? [];
+    final subscription = current.firstWhere((s) => s.id == id);
+
+    await apiService.toggleSubscriptionStatus(id, !subscription.isActive);
+    ref.invalidateSelf();
   }
 }
 
+// Simple derived providers
 @riverpod
 List<Subscription> subscriptionsList(SubscriptionsListRef ref) {
-  final all = ref.watch(subscriptionsNotifierProvider);
-  return all.where((s) => s.isActive).toList();
+  final asyncSubs = ref.watch(subscriptionsNotifierProvider);
+  return asyncSubs.when(
+    data: (subs) => subs.where((s) => s.isActive).toList(),
+    loading: () => [],
+    error: (_, __) => [],
+  );
 }
 
 @riverpod
 double monthlyTotal(MonthlyTotalRef ref) {
-  final active = ref.watch(subscriptionsListProvider);
-  return active.fold(0, (sum, sub) => sum + sub.monthlyAmount);
+  final asyncSubs = ref.watch(subscriptionsNotifierProvider);
+  return asyncSubs.when(
+    data: (allSubs) {
+      final active = allSubs.where((s) => s.isActive);
+      return active.fold(0.0, (sum, sub) => sum + sub.monthlyAmount);
+    },
+    loading: () => 0.0,
+    error: (_, __) => 0.0,
+  );
 }
 
 @riverpod
 double yearlyTotal(YearlyTotalRef ref) {
-  final active = ref.watch(subscriptionsListProvider);
-  return active.fold(0, (sum, sub) => sum + sub.yearlyAmount);
+  final asyncSubs = ref.watch(subscriptionsNotifierProvider);
+  return asyncSubs.when(
+    data: (allSubs) {
+      final active = allSubs.where((s) => s.isActive);
+      return active.fold(0.0, (sum, sub) => sum + sub.yearlyAmount);
+    },
+    loading: () => 0.0,
+    error: (_, __) => 0.0,
+  );
 }
 
 @riverpod
 List<Subscription> dueSoonSubscriptions(DueSoonSubscriptionsRef ref) {
-  final active = ref.watch(subscriptionsListProvider);
-  return active.where((sub) => sub.isDueSoon).toList();
+  final asyncSubs = ref.watch(subscriptionsNotifierProvider);
+  return asyncSubs.when(
+    data: (allSubs) {
+      final active = allSubs.where((s) => s.isActive);
+      return active.where((sub) => sub.isDueSoon).toList();
+    },
+    loading: () => <Subscription>[],
+    error: (_, __) => <Subscription>[],
+  );
 }
 
 @riverpod
 Subscription? subscriptionById(SubscriptionByIdRef ref, String id) {
-  final all = ref.watch(subscriptionsNotifierProvider);
-  try {
-    return all.firstWhere((s) => s.id == id);
-  } catch (_) {
-    return null;
-  }
+  final asyncSubs = ref.watch(subscriptionsNotifierProvider);
+  return asyncSubs.when(
+    data: (subs) {
+      try {
+        return subs.firstWhere((s) => s.id == id);
+      } catch (_) {
+        return null;
+      }
+    },
+    loading: () => null,
+    error: (_, __) => null,
+  );
 }
 
-/// Provider for the search query state.
+// Filter providers
 @riverpod
 class SearchQuery extends _$SearchQuery {
   @override
   String build() => '';
 
-  void update(String query) {
-    state = query;
-  }
-
-  void clear() {
-    state = '';
-  }
+  void update(String query) => state = query;
+  void clear() => state = '';
 }
 
-/// Provider for the selected category filter.
-/// null means "All Categories".
 @riverpod
 class CategoryFilter extends _$CategoryFilter {
   @override
   SubscriptionCategory? build() => null;
 
-  void select(SubscriptionCategory? category) {
-    state = category;
-  }
-
-  void clear() {
-    state = null;
-  }
+  void select(SubscriptionCategory? category) => state = category;
+  void clear() => state = null;
 }
 
-/// Provider for the current sort option.
 @riverpod
 class SortBy extends _$SortBy {
   @override
   SortOption build() => SortOption.nextBillingDate;
 
-  void select(SortOption option) {
-    state = option;
-  }
+  void select(SortOption option) => state = option;
 }
 
-/// Provider for the sort direction.
-/// true = ascending, false = descending.
 @riverpod
 class SortAscending extends _$SortAscending {
   @override
   bool build() => true;
 
-  void toggle() {
-    state = !state;
-  }
-
-  void set(bool ascending) {
-    state = ascending;
-  }
+  void toggle() => state = !state;
+  void set(bool ascending) => state = ascending;
 }
 
-/// Provider that filters active subscriptions based on the search query.
-/// Searches in name, description, and category label.
+// Filtered subscriptions
 @riverpod
 List<Subscription> filteredSubscriptions(FilteredSubscriptionsRef ref) {
   final query = ref.watch(searchQueryProvider).toLowerCase().trim();
@@ -181,7 +195,6 @@ List<Subscription> filteredSubscriptions(FilteredSubscriptionsRef ref) {
   final sortAscending = ref.watch(sortAscendingProvider);
   final subscriptions = ref.watch(subscriptionsListProvider);
 
-  // Filter by search query
   var result = subscriptions.where((sub) {
     if (query.isNotEmpty) {
       final nameMatch = sub.name.toLowerCase().contains(query);
@@ -195,12 +208,10 @@ List<Subscription> filteredSubscriptions(FilteredSubscriptionsRef ref) {
     return true;
   }).toList();
 
-  // Filter by category
   if (categoryFilter != null) {
     result = result.where((sub) => sub.category == categoryFilter).toList();
   }
 
-  // Sort
   result.sort((a, b) {
     int comparison;
     switch (sortBy) {
@@ -219,7 +230,6 @@ List<Subscription> filteredSubscriptions(FilteredSubscriptionsRef ref) {
   return result;
 }
 
-/// Returns true if any filter or sort is active (non-default).
 @riverpod
 bool hasActiveFilters(HasActiveFiltersRef ref) {
   final query = ref.watch(searchQueryProvider);

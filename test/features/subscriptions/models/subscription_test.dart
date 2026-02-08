@@ -16,7 +16,9 @@ void main() {
         billingCycle: BillingCycle.monthly,
         category: SubscriptionCategory.entertainment,
         startDate: DateTime(2024, 1, 15),
-        nextBillingDate: DateTime.now().add(const Duration(days: 5)),
+        nextBillingDate: DateTime.now().add(const Duration(days: 1)),
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
     });
 

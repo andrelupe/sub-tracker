@@ -6,7 +6,7 @@ part of 'subscription_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$subscriptionsListHash() => r'3a26de520475e95acf7fcce7888594a2264e36c2';
+String _$subscriptionsListHash() => r'cb4000f1521b3a070a27d9c4ab16a1801340b201';
 
 /// See also [subscriptionsList].
 @ProviderFor(subscriptionsList)
@@ -22,7 +22,7 @@ final subscriptionsListProvider =
 );
 
 typedef SubscriptionsListRef = AutoDisposeProviderRef<List<Subscription>>;
-String _$monthlyTotalHash() => r'efc07e78be0ca4be0163f16215ebbded13993452';
+String _$monthlyTotalHash() => r'3e493dbec2f9e3165fbe8dcf8e992595d60382c1';
 
 /// See also [monthlyTotal].
 @ProviderFor(monthlyTotal)
@@ -36,7 +36,7 @@ final monthlyTotalProvider = AutoDisposeProvider<double>.internal(
 );
 
 typedef MonthlyTotalRef = AutoDisposeProviderRef<double>;
-String _$yearlyTotalHash() => r'767cae49329de4d667f7fcba6cba639b92c9b573';
+String _$yearlyTotalHash() => r'8e5ce8c29c86f4dee440b4f86050088b4c239623';
 
 /// See also [yearlyTotal].
 @ProviderFor(yearlyTotal)
@@ -51,7 +51,7 @@ final yearlyTotalProvider = AutoDisposeProvider<double>.internal(
 
 typedef YearlyTotalRef = AutoDisposeProviderRef<double>;
 String _$dueSoonSubscriptionsHash() =>
-    r'7e4da5451d5412552b086c4abf0bd1b05366aa69';
+    r'7ad98285c90b65bddb40eca709446cbf3186c5a0';
 
 /// See also [dueSoonSubscriptions].
 @ProviderFor(dueSoonSubscriptions)
@@ -67,7 +67,7 @@ final dueSoonSubscriptionsProvider =
 );
 
 typedef DueSoonSubscriptionsRef = AutoDisposeProviderRef<List<Subscription>>;
-String _$subscriptionByIdHash() => r'e8ac28f28f86488b6258c4eb4d591a8a19b6209c';
+String _$subscriptionByIdHash() => r'c645f5ef6d4cba4191233b264fcf9abcc51fef78';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -219,10 +219,7 @@ class _SubscriptionByIdProviderElement
 String _$filteredSubscriptionsHash() =>
     r'634e8ccfdc5a6246ee2e98d3741fbc0e8302975a';
 
-/// Provider that filters active subscriptions based on the search query.
-/// Searches in name, description, and category label.
-///
-/// Copied from [filteredSubscriptions].
+/// See also [filteredSubscriptions].
 @ProviderFor(filteredSubscriptions)
 final filteredSubscriptionsProvider =
     AutoDisposeProvider<List<Subscription>>.internal(
@@ -238,9 +235,7 @@ final filteredSubscriptionsProvider =
 typedef FilteredSubscriptionsRef = AutoDisposeProviderRef<List<Subscription>>;
 String _$hasActiveFiltersHash() => r'14a2b6544f748a4b1ed6b77859ba80b94c1ab884';
 
-/// Returns true if any filter or sort is active (non-default).
-///
-/// Copied from [hasActiveFilters].
+/// See also [hasActiveFilters].
 @ProviderFor(hasActiveFilters)
 final hasActiveFiltersProvider = AutoDisposeProvider<bool>.internal(
   hasActiveFilters,
@@ -254,15 +249,14 @@ final hasActiveFiltersProvider = AutoDisposeProvider<bool>.internal(
 
 typedef HasActiveFiltersRef = AutoDisposeProviderRef<bool>;
 String _$subscriptionsNotifierHash() =>
-    r'1f7884cb7e4413cf23475e541561f4725478c667';
+    r'5f93fe2be98cf91ebe5774054ddc569a1b6b996d';
 
-/// Main provider that holds the list of all subscriptions.
-/// This is the single source of truth - all other providers derive from this.
+/// Main async notifier for subscriptions
 ///
 /// Copied from [SubscriptionsNotifier].
 @ProviderFor(SubscriptionsNotifier)
 final subscriptionsNotifierProvider =
-    NotifierProvider<SubscriptionsNotifier, List<Subscription>>.internal(
+    AsyncNotifierProvider<SubscriptionsNotifier, List<Subscription>>.internal(
   SubscriptionsNotifier.new,
   name: r'subscriptionsNotifierProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -272,12 +266,10 @@ final subscriptionsNotifierProvider =
   allTransitiveDependencies: null,
 );
 
-typedef _$SubscriptionsNotifier = Notifier<List<Subscription>>;
-String _$searchQueryHash() => r'b07ebd22fb9cb0db36c8d833cc6e21f4fcbd9b7b';
+typedef _$SubscriptionsNotifier = AsyncNotifier<List<Subscription>>;
+String _$searchQueryHash() => r'790bd96a8a13bb944767c7bf06a5378cfc78a54d';
 
-/// Provider for the search query state.
-///
-/// Copied from [SearchQuery].
+/// See also [SearchQuery].
 @ProviderFor(SearchQuery)
 final searchQueryProvider =
     AutoDisposeNotifierProvider<SearchQuery, String>.internal(
@@ -290,12 +282,9 @@ final searchQueryProvider =
 );
 
 typedef _$SearchQuery = AutoDisposeNotifier<String>;
-String _$categoryFilterHash() => r'ef9e96c70615e3974cca3c7ecc26bfe2905fe447';
+String _$categoryFilterHash() => r'c4fd177714b069bc012543e81a8b566a40a32b00';
 
-/// Provider for the selected category filter.
-/// null means "All Categories".
-///
-/// Copied from [CategoryFilter].
+/// See also [CategoryFilter].
 @ProviderFor(CategoryFilter)
 final categoryFilterProvider =
     AutoDisposeNotifierProvider<CategoryFilter, SubscriptionCategory?>.internal(
@@ -309,11 +298,9 @@ final categoryFilterProvider =
 );
 
 typedef _$CategoryFilter = AutoDisposeNotifier<SubscriptionCategory?>;
-String _$sortByHash() => r'e02daf01cac0ab4d7242db3544513da000be8f15';
+String _$sortByHash() => r'606c7378af26594e9c60d269f3b45bae441796c8';
 
-/// Provider for the current sort option.
-///
-/// Copied from [SortBy].
+/// See also [SortBy].
 @ProviderFor(SortBy)
 final sortByProvider = AutoDisposeNotifierProvider<SortBy, SortOption>.internal(
   SortBy.new,
@@ -325,12 +312,9 @@ final sortByProvider = AutoDisposeNotifierProvider<SortBy, SortOption>.internal(
 );
 
 typedef _$SortBy = AutoDisposeNotifier<SortOption>;
-String _$sortAscendingHash() => r'361c60808efbf979242ac54040dde891eb043bbe';
+String _$sortAscendingHash() => r'628585c20c23bfd0d3205e1315d64b01664c3337';
 
-/// Provider for the sort direction.
-/// true = ascending, false = descending.
-///
-/// Copied from [SortAscending].
+/// See also [SortAscending].
 @ProviderFor(SortAscending)
 final sortAscendingProvider =
     AutoDisposeNotifierProvider<SortAscending, bool>.internal(

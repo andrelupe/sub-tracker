@@ -4,10 +4,10 @@ Complete subscription management system with Flutter frontend and .NET backend.
 
 ## Components
 
-| Component | Technology | Status |
-|-----------|------------|--------|
+| Component    | Technology                   | Status      |
+| ------------ | ---------------------------- | ----------- |
 | **Frontend** | Flutter (Web/Mobile/Desktop) | ✅ Complete |
-| **Backend** | .NET 10 + FastEndpoints | ✅ v2.0.0 |
+| **Backend**  | .NET 10 + FastEndpoints      | ✅ v2.0.0   |
 
 ---
 
@@ -28,8 +28,6 @@ flutter run -d chrome --web-port=3000
 # Run on macOS (requires Xcode)
 flutter run -d macos
 ```
-
-> **Note:** On web, always use `--web-port=3000` to ensure data persists between sessions. Each port has isolated storage.
 
 ### Features
 
@@ -93,14 +91,14 @@ api/
 
 ### Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/subscriptions` | List all |
-| GET | `/api/subscriptions/{id}` | Get by ID |
-| POST | `/api/subscriptions` | Create new |
-| PUT | `/api/subscriptions/{id}` | Update |
-| DELETE | `/api/subscriptions/{id}` | Delete |
-| GET | `/swagger` | Documentation |
+| Method | Endpoint                  | Description   |
+| ------ | ------------------------- | ------------- |
+| GET    | `/api/subscriptions`      | List all      |
+| GET    | `/api/subscriptions/{id}` | Get by ID     |
+| POST   | `/api/subscriptions`      | Create new    |
+| PUT    | `/api/subscriptions/{id}` | Update        |
+| DELETE | `/api/subscriptions/{id}` | Delete        |
+| GET    | `/swagger`                | Documentation |
 
 ### Quick Start
 
@@ -125,6 +123,7 @@ docker-compose up -d
 ### Configuration
 
 **appsettings.json:**
+
 ```json
 {
   "ConnectionStrings": {

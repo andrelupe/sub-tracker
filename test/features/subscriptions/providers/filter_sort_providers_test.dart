@@ -40,6 +40,8 @@ void main() {
           category: SubscriptionCategory.entertainment,
           startDate: now.subtract(const Duration(days: 30)),
           nextBillingDate: now.add(const Duration(days: 5)),
+          createdAt: now,
+          updatedAt: now,
         ),
         Subscription(
           id: '2',
@@ -48,8 +50,10 @@ void main() {
           currency: 'EUR',
           billingCycle: BillingCycle.monthly,
           category: SubscriptionCategory.music,
-          startDate: now.subtract(const Duration(days: 60)),
+          startDate: now.subtract(const Duration(days: 20)),
           nextBillingDate: now.add(const Duration(days: 10)),
+          createdAt: now,
+          updatedAt: now,
         ),
         Subscription(
           id: '3',
@@ -61,16 +65,20 @@ void main() {
           category: SubscriptionCategory.cloud,
           startDate: now.subtract(const Duration(days: 90)),
           nextBillingDate: now.add(const Duration(days: 2)),
+          createdAt: now,
+          updatedAt: now,
         ),
         Subscription(
           id: '4',
-          name: 'Adobe Creative Cloud',
+          name: 'Adobe Creative Suite',
           amount: 54.99,
           currency: 'EUR',
           billingCycle: BillingCycle.monthly,
           category: SubscriptionCategory.productivity,
-          startDate: now.subtract(const Duration(days: 15)),
-          nextBillingDate: now.add(const Duration(days: 15)),
+          startDate: now.subtract(const Duration(days: 10)),
+          nextBillingDate: now.add(const Duration(days: 20)),
+          createdAt: now,
+          updatedAt: now,
         ),
       ];
 
@@ -217,7 +225,7 @@ void main() {
         container.read(sortAscendingProvider.notifier).set(true);
         final result = container.read(filteredSubscriptionsProvider);
         expect(result.map((s) => s.name).toList(), [
-          'Adobe Creative Cloud',
+          'Adobe Creative Suite',
           'iCloud',
           'Netflix',
           'Spotify',
@@ -232,7 +240,7 @@ void main() {
           'Spotify',
           'Netflix',
           'iCloud',
-          'Adobe Creative Cloud',
+          'Adobe Creative Suite',
         ]);
       });
 
@@ -263,7 +271,7 @@ void main() {
           'iCloud',
           'Netflix',
           'Spotify',
-          'Adobe Creative Cloud',
+          'Adobe Creative Suite',
         ]);
       });
 

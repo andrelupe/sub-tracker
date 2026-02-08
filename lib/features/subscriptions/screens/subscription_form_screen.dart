@@ -33,6 +33,7 @@ class _SubscriptionFormScreenState
   String _currency = 'EUR';
   bool _isActive = true;
   bool _initialized = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -63,50 +64,69 @@ class _SubscriptionFormScreenState
     }
   }
 
-  void _save() {
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final notifier = ref.read(subscriptionsNotifierProvider.notifier);
-    final amount = double.parse(_amountController.text.replaceAll(',', '.'));
+    setState(() => _isLoading = true);
 
-    if (widget.isEditing) {
-      final existing =
-          ref.read(subscriptionByIdProvider(widget.subscriptionId!));
-      if (existing != null) {
-        notifier.update(
-          existing.copyWith(
-            name: _nameController.text.trim(),
-            description: _descriptionController.text.trim().isEmpty
-                ? null
-                : _descriptionController.text.trim(),
-            amount: amount,
-            currency: _currency,
-            billingCycle: _billingCycle,
-            category: _category,
-            startDate: _startDate,
-            nextBillingDate: _billingCycle.nextBillingDate(_startDate),
-            isActive: _isActive,
+    try {
+      final notifier = ref.read(subscriptionsNotifierProvider.notifier);
+      final amount = double.parse(_amountController.text.replaceAll(',', '.'));
+
+      if (widget.isEditing) {
+        final existing =
+            ref.read(subscriptionByIdProvider(widget.subscriptionId!));
+        if (existing != null) {
+          await notifier.updateSubscription(
+            existing.copyWith(
+              name: _nameController.text.trim(),
+              description: _descriptionController.text.trim().isEmpty
+                  ? null
+                  : _descriptionController.text.trim(),
+              amount: amount,
+              currency: _currency,
+              billingCycle: _billingCycle,
+              category: _category,
+              startDate: _startDate,
+              nextBillingDate: _billingCycle.nextBillingDate(_startDate),
+              isActive: _isActive,
+            ),
+          );
+        }
+      } else {
+        await notifier.create(
+          name: _nameController.text.trim(),
+          description: _descriptionController.text.trim().isEmpty
+              ? null
+              : _descriptionController.text.trim(),
+          amount: amount,
+          currency: _currency,
+          billingCycle: _billingCycle,
+          category: _category,
+          startDate: _startDate,
+        );
+      }
+
+      if (mounted) {
+        context.pop();
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${error.toString()}'),
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
-    } else {
-      notifier.create(
-        name: _nameController.text.trim(),
-        description: _descriptionController.text.trim().isEmpty
-            ? null
-            : _descriptionController.text.trim(),
-        amount: amount,
-        currency: _currency,
-        billingCycle: _billingCycle,
-        category: _category,
-        startDate: _startDate,
-      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
-
-    context.pop();
   }
 
-  void _delete() async {
+  Future<void> _delete() async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -130,10 +150,30 @@ class _SubscriptionFormScreenState
     );
 
     if (confirmed == true && mounted) {
-      ref
-          .read(subscriptionsNotifierProvider.notifier)
-          .delete(widget.subscriptionId!);
-      context.pop();
+      setState(() => _isLoading = true);
+
+      try {
+        await ref
+            .read(subscriptionsNotifierProvider.notifier)
+            .delete(widget.subscriptionId!);
+
+        if (mounted) {
+          context.pop();
+        }
+      } catch (error) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Delete failed: ${error.toString()}'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
     }
   }
 
@@ -163,8 +203,14 @@ class _SubscriptionFormScreenState
         actions: [
           if (widget.isEditing)
             IconButton(
-              icon: const Icon(Icons.delete_outline),
-              onPressed: _delete,
+              icon: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.delete_outline),
+              onPressed: _isLoading ? null : _delete,
               tooltip: 'Delete',
             ),
         ],
@@ -312,9 +358,22 @@ class _SubscriptionFormScreenState
             ],
             const SizedBox(height: 32),
             FilledButton(
-              onPressed: _save,
-              child:
-                  Text(widget.isEditing ? 'Save Changes' : 'Add Subscription'),
+              onPressed: _isLoading ? null : _save,
+              child: _isLoading
+                  ? const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        SizedBox(width: 8),
+                        Text('Saving...'),
+                      ],
+                    )
+                  : Text(
+                      widget.isEditing ? 'Save Changes' : 'Add Subscription'),
             ),
           ],
         ),

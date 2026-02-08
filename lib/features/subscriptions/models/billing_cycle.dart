@@ -1,17 +1,9 @@
-import 'package:hive/hive.dart';
 import 'package:subtracker/core/extensions/datetime_extensions.dart';
 
-part 'billing_cycle.g.dart';
-
-@HiveType(typeId: 1)
 enum BillingCycle {
-  @HiveField(0)
   weekly('Weekly'),
-  @HiveField(1)
   monthly('Monthly'),
-  @HiveField(2)
   quarterly('Quarterly'),
-  @HiveField(3)
   yearly('Yearly');
 
   const BillingCycle(this.label);
@@ -51,4 +43,10 @@ enum BillingCycle {
       BillingCycle.yearly => amount,
     };
   }
+
+  static BillingCycle fromJson(int index) {
+    return BillingCycle.values[index];
+  }
+
+  int toJson() => index;
 }

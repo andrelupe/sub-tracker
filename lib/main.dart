@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:subtracker/core/router/app_router.dart';
-import 'package:subtracker/core/storage/hive_storage_service.dart';
 import 'package:subtracker/core/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize Hive storage
-  await HiveStorageService.initialize();
 
   runApp(
     const ProviderScope(

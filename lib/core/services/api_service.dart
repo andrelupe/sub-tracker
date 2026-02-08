@@ -2,12 +2,16 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String _baseUrl = 'http://localhost:5270/api';
   static const Duration _timeout = Duration(seconds: 10);
 
+  final String _baseUrl;
   final http.Client _client;
 
-  ApiService({http.Client? client}) : _client = client ?? http.Client();
+  ApiService({
+    required String baseUrl,
+    http.Client? client,
+  })  : _baseUrl = baseUrl,
+        _client = client ?? http.Client();
 
   Future<T> get<T>(
     String endpoint, {

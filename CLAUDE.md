@@ -4,6 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
+### Flutter Frontend
+
 ```bash
 # Install dependencies
 flutter pub get
@@ -27,31 +29,68 @@ flutter test test/path/to/specific_test.dart  # Single test file
 flutter analyze
 ```
 
+### .NET Backend
+
+```bash
+# Run API (from api/src/SubTracker.Api)
+dotnet run
+
+# Run tests (from api/)
+dotnet test
+
+# Add EF Core migration (from api/src/SubTracker.Api)
+dotnet ef migrations add MigrationName
+```
+
 ## Architecture
 
-This is a Flutter app using **Vertical Slice Architecture** with feature-based organization. Each feature is self-contained with its own models, providers, screens, and widgets.
+This is a **client-server application** with a Flutter frontend and .NET API backend.
 
-### State Management Pattern
+### Data Flow
 
-Uses **Riverpod 2.x with code generation** for state management. The key pattern is:
+```
+Flutter UI → Riverpod AsyncNotifier → HTTP API Service → .NET FastEndpoints → SQLite
+```
 
-1. **SubscriptionStore**: In-memory data store (single source of truth) that broadcasts changes via StreamController
-2. **Data Providers**: Expose store data reactively (subscriptionsListProvider, activeSubscriptionsProvider)
-3. **Computed Providers**: Derive state from data (monthlyTotalProvider, dueSoonSubscriptionsProvider)
-4. **Notifier Provider**: SubscriptionNotifier handles all mutations (create, update, delete, toggle)
+All data is managed by the API. The Flutter app has **no local storage** — it is a pure frontend client.
 
-**Important**: After modifying store data, call `ref.invalidateSelf()` to notify all watchers. Providers use AutoDispose for automatic cleanup.
+### Frontend State Management Pattern
+
+Uses **Riverpod 2.x with code generation** and **async providers** for API integration:
+
+1. **ApiService** (`lib/core/services/api_service.dart`): Generic HTTP client with error handling
+2. **SubscriptionApiService** (`lib/features/subscriptions/services/`): Subscription-specific API methods
+3. **SubscriptionsNotifier** (AsyncNotifier): Manages subscription state with API calls for all CRUD operations
+4. **Derived Providers**: Compute monthly/yearly totals, due soon list, filtered results from async state
+5. **Filter/Sort Providers**: Client-side search, category filter, and sorting
+
+**Key pattern**: The `SubscriptionsNotifier` extends `AsyncNotifier<List<Subscription>>`. All mutations (`create`, `updateSubscription`, `delete`, `toggleActive`) are async and call the API, then refresh state via `ref.invalidateSelf()`.
+
+### Backend Architecture
+
+Uses **FastEndpoints** (not controllers) with **Vertical Slice Architecture**:
+
+- Each endpoint is a self-contained class under `Features/`
+- Domain model (`Subscription`) uses a rich domain pattern with private setters and factory methods
+- `Subscription.Create()` static factory generates IDs, calculates next billing date, sets timestamps
+- `DatabaseSeeder` seeds 12 dummy subscriptions in Development mode only
+
+### Environment Configuration
+
+The API base URL is loaded at runtime from a `.env` file using `flutter_dotenv`:
+
+```env
+API_BASE_URL=http://localhost:5270/api
+```
+
+This is read via `AppConstants.apiBaseUrl` in `lib/core/constants/app_constants.dart`. The `.env` file is declared as a Flutter asset in `pubspec.yaml` and loaded in `main.dart` before app startup.
 
 ### Code Generation
 
-The app relies heavily on code generation for Riverpod providers. Files with `@riverpod` annotations require:
+The app relies on code generation for Riverpod providers. Files with `@riverpod` annotations require:
 - A `.g.dart` companion file (e.g., `subscription_providers.g.dart`)
 - Running `build_runner` after changes
 - Adding `part 'filename.g.dart';` directive at the top of the file
-
-### Data Storage
-
-**Critical**: Data is stored **in-memory only** and will be lost when the app closes. There is no persistence layer yet. Any feature requiring data persistence will need to add a database solution (Drift, Hive, or SharedPreferences).
 
 ### Navigation
 
@@ -66,8 +105,8 @@ Uses **GoRouter** with type-safe routing:
 **Subscription Model** (`lib/features/subscriptions/models/subscription.dart`):
 - Immutable with `copyWith()` for updates
 - Computed properties: `monthlyAmount`, `yearlyAmount`, `daysUntilNextBilling`, `isDueSoon`
-- Uses UUID v4 for IDs
-- Active/inactive state for pausing subscriptions
+- JSON serialization: `fromJson()` and `toJson()` for API communication
+- Fields: `id`, `name`, `description`, `amount`, `currency`, `billingCycle`, `category`, `startDate`, `nextBillingDate`, `isActive`, `url`, `reminderDaysBefore`, `createdAt`, `updatedAt`
 
 **BillingCycle Enum**: Contains logic for calculating next billing dates and normalizing amounts to monthly/yearly equivalents.
 
@@ -90,16 +129,15 @@ Use these extensions for all date calculations to maintain consistency across th
 - Primary color: Indigo (#6366F1)
 - 12px border radius throughout
 - Category colors are semantic (defined in enum)
-- "Due Soon" is highlighted in red (subscriptions due within 7 days)
+- "Due Soon" configurable via `reminderDaysBefore` (default: 2 days)
+- AsyncValue `.when()` pattern for loading/error/data states in UI
 
-### Form Handling
+### Error Handling
 
-**SubscriptionFormScreen** supports both create and edit modes:
-- Edit mode: Pre-populated with existing subscription data, shows delete and active toggle
-- Create mode: Empty form with sensible defaults
-- Amount input accepts both `.` and `,` as decimal separators
-- Date picker for start date selection
-- Form validation: name required, amount > 0
+- **API errors**: `ApiException` and `ValidationException` classes in `api_service.dart`
+- **UI errors**: SnackBars for operation failures, retry buttons for load failures
+- **Async safety**: `mounted` checks before `setState` or navigation after async operations
+- **Form validation**: Flutter's built-in form validation with validators
 
 ## Common Patterns
 
@@ -115,24 +153,41 @@ Use these extensions for all date calculations to maintain consistency across th
 Follow the vertical slice pattern:
 ```
 lib/features/your_feature/
-├── models/       # Data models
-├── providers/    # State management
-├── screens/      # Full-screen UI
+├── models/       # Data models with fromJson/toJson
+├── providers/    # AsyncNotifier + derived providers
+├── screens/      # Full-screen UI with AsyncValue handling
+├── services/     # API service for HTTP calls
 └── widgets/      # Reusable components
 ```
+
+### Adding a New API Endpoint (Backend)
+
+1. Create endpoint class under `Features/YourFeature/`
+2. Extend `Endpoint<TRequest, TResponse>` from FastEndpoints
+3. Add FluentValidation rules in the `Validator` inner class
+4. Register route in `Configure()` method
 
 ### Modifying Subscription Logic
 
 1. Update the model in `lib/features/subscriptions/models/subscription.dart`
-2. If changing computed properties, verify impact on providers
-3. Update SubscriptionNotifier if adding new mutations
-4. Run tests to ensure billing calculations remain correct
-5. Re-generate code if needed
+2. Update `fromJson()`/`toJson()` if fields change
+3. Update the backend `Subscription` entity and endpoint DTOs
+4. Add EF Core migration if database schema changes
+5. If changing computed properties, verify impact on derived providers
+6. Update SubscriptionsNotifier if adding new mutations
+7. Run both Flutter and .NET tests
 
 ## Testing
 
-Test files exist for:
+### Flutter Tests (51 tests)
 - Models: Billing calculations, date logic, computed properties
+- Providers: Filter/sort logic, search, category filtering
 - Extensions: DateTime manipulation
 
-Run tests before committing changes to verify billing logic and date calculations.
+### .NET Tests (8 tests)
+- Domain: Subscription creation, update, IsDueSoon, next billing date calculation
+
+Run tests before committing changes:
+```bash
+flutter test && cd api && dotnet test
+```

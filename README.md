@@ -4,14 +4,14 @@ Complete subscription management system with Flutter frontend and .NET backend.
 
 ## Components
 
-| Component    | Technology                   | Status      |
-| ------------ | ---------------------------- | ----------- |
-| **Frontend** | Flutter (Web/Mobile/Desktop) | ✅ Complete |
-| **Backend**  | .NET 10 + FastEndpoints      | ✅ v2.0.0   |
+| Component    | Technology                  | Version |
+| ------------ | --------------------------- | ------- |
+| **Frontend** | Flutter (Web/Mobile/Desktop) | v2.0.0  |
+| **Backend**  | .NET 10 + FastEndpoints      | v2.0.0  |
 
 ---
 
-## 🎯 Frontend (Flutter)
+## Frontend (Flutter)
 
 ### Getting Started
 
@@ -19,13 +19,16 @@ Complete subscription management system with Flutter frontend and .NET backend.
 # Install dependencies
 flutter pub get
 
-# Generate code
+# Generate Riverpod providers
 dart run build_runner build --delete-conflicting-outputs
 
-# Run on Chrome (use fixed port for data persistence)
-flutter run -d chrome --web-port=3000
+# Create .env file from template
+cp .env.example .env
 
-# Run on macOS (requires Xcode)
+# Run on Chrome
+flutter run -d chrome
+
+# Run on macOS
 flutter run -d macos
 ```
 
@@ -35,29 +38,49 @@ flutter run -d macos
 - View monthly and yearly spending totals
 - See subscriptions due soon
 - Swipe to pause or delete subscriptions
+- Loading states and error handling for all API operations
+- Search and filter subscriptions by category
 
 ### Architecture
 
-Vertical Slices with Riverpod for state management.
+Vertical Slices with Riverpod (async) for state management, HTTP API client for data.
 
 ```
 lib/
 ├── core/
-│   ├── extensions/
-│   ├── router/
-│   └── theme/
+│   ├── constants/          # App constants + env config
+│   ├── extensions/         # DateTime extensions
+│   ├── providers/          # API service providers
+│   ├── router/             # GoRouter configuration
+│   ├── services/           # HTTP API client
+│   └── theme/              # Material 3 theming
 ├── features/
 │   └── subscriptions/
-│       ├── models/
-│       ├── providers/
-│       ├── screens/
-│       └── widgets/
+│       ├── models/         # Subscription, BillingCycle, Category
+│       ├── providers/      # Async Riverpod state management
+│       ├── screens/        # HomeScreen, SubscriptionFormScreen
+│       ├── services/       # Subscription API service
+│       └── widgets/        # ListTile, SummaryCard, FilterBar
 └── main.dart
+```
+
+### Environment Configuration
+
+The API base URL is configured via a `.env` file (loaded at runtime with `flutter_dotenv`):
+
+```env
+API_BASE_URL=http://localhost:5270/api
+```
+
+For Docker deployments, mount a different `.env` file:
+```yaml
+volumes:
+  - ./production.env:/app/.env
 ```
 
 ---
 
-## 🚀 Backend (.NET API)
+## Backend (.NET API)
 
 ### Technologies
 
@@ -74,8 +97,8 @@ lib/
 ```
 api/
 ├── src/SubTracker.Api/
-│   ├── Common/                 # Shared services
-│   ├── Database/               # EF Core DbContext
+│   ├── Common/                 # Shared services (DateTime, Notifications)
+│   ├── Database/               # EF Core DbContext + DatabaseSeeder
 │   ├── Features/
 │   │   ├── Subscriptions/      # Complete feature
 │   │   │   ├── Domain/         # Entities + domain logic
@@ -84,8 +107,8 @@ api/
 │   │   │   ├── CreateEndpoint.cs
 │   │   │   └── ...
 │   │   └── Notifications/      # Pushover + Background Jobs
-│   ├── Program.cs
-│   └── appsettings.json
+│   ├── Migrations/             # EF Core migrations
+│   └── Program.cs
 └── tests/SubTracker.Api.Tests/
 ```
 
@@ -103,13 +126,9 @@ api/
 ### Quick Start
 
 ```bash
-cd api
+cd api/src/SubTracker.Api
 
-# First run - create migration
-cd src/SubTracker.Api
-dotnet ef migrations add InitialCreate
-
-# Run API
+# Run API (auto-migrates + seeds dummy data in Development)
 dotnet run
 
 # Run tests
@@ -119,6 +138,10 @@ dotnet test
 # Docker
 docker-compose up -d
 ```
+
+### Dummy Data
+
+In **Development** mode, the API automatically seeds 12 realistic subscriptions (Netflix, Spotify, GitHub Pro, etc.) on first run. The seed only runs when the database is empty.
 
 ### Configuration
 
@@ -138,38 +161,27 @@ docker-compose up -d
 
 ### Features
 
-- ✅ **Complete CRUD** with FluentValidation
-- ✅ **Domain logic** encapsulated (next billing date calculation)
-- ✅ **Background job** checks due subscriptions (hourly)
-- ✅ **Pushover notifications** automatic
-- ✅ **Unit tests** (8 tests passing)
-- ✅ **Docker** production ready
-- ✅ **Auto-migration** on startup
+- Complete CRUD with FluentValidation
+- Domain logic encapsulated (next billing date calculation)
+- Background job checks due subscriptions (hourly)
+- Pushover notifications (automatic)
+- Development data seeder (12 subscriptions)
+- Unit tests (8 tests passing)
+- Docker production ready
+- Auto-migration on startup
 
 ---
 
-## 🔄 Integration
+## Local Development
 
-### Local Development
+1. **Backend**: `cd api/src/SubTracker.Api && dotnet run` (port 5270)
+2. **Frontend**: `flutter run -d chrome`
 
-1. **Backend**: `cd api && dotnet run` (port 5000)
-2. **Frontend**: `flutter run -d chrome --web-port=3000`
-
-### Production
-
-```bash
-# API
-cd api
-docker-compose up -d
-
-# Frontend
-flutter build web
-# Deploy to static hosting
-```
+Both must be running simultaneously. The frontend reads the API URL from `.env`.
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 sub-tracker/
@@ -178,11 +190,16 @@ sub-tracker/
 │   ├── src/SubTracker.Api/
 │   ├── tests/
 │   └── docker-compose.yml
-├── README.md
-└── AGENTS.md
+├── .env.example                # Environment template
+├── AGENTS.md                   # AI agent guidelines
+├── CLAUDE.md                   # Claude Code guidelines
+└── README.md
 ```
 
-## Data Persistence
+## Data Flow
 
-- **Frontend**: Hive (local storage, IndexedDB on web)
-- **Backend**: SQLite (local) → PostgreSQL (production)
+```
+Flutter UI → Riverpod Providers → HTTP API Service → .NET Backend → SQLite
+```
+
+All data is managed by the API. The Flutter app is a pure frontend client with no local storage.

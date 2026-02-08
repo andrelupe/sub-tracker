@@ -1,8 +1,10 @@
 # AGENTS.md
 
-Guidelines for AI coding agents working in this Flutter subscription tracking app.
+Guidelines for AI coding agents working in this Flutter + .NET subscription tracking app.
 
 ## Build, Lint, and Test Commands
+
+### Flutter Frontend
 
 ```bash
 # Install dependencies
@@ -38,26 +40,76 @@ flutter analyze
 dart format .
 ```
 
+### .NET Backend
+
+```bash
+# Run API (from api/src/SubTracker.Api)
+dotnet run                     # Starts on http://localhost:5270
+
+# Run tests (from api/)
+dotnet test
+
+# Build
+dotnet build
+
+# Add EF Core migration (from api/src/SubTracker.Api)
+dotnet ef migrations add MigrationName
+
+# Docker
+cd api && docker-compose up -d
+```
+
 ## Architecture Overview
+
+**Client-server application** with Flutter frontend consuming a .NET REST API.
+
+### Data Flow
+
+```
+Flutter UI → Riverpod AsyncNotifier → HTTP API Service → .NET FastEndpoints → SQLite
+```
+
+### Frontend Structure
 
 **Vertical Slice Architecture** - Features are self-contained modules:
 ```
 lib/
 ├── core/                    # Shared utilities
-│   ├── extensions/          # Extension methods
+│   ├── constants/           # App constants + env config
+│   ├── extensions/          # DateTime extension methods
+│   ├── providers/           # API service Riverpod providers
 │   ├── router/              # GoRouter configuration
+│   ├── services/            # Generic HTTP API client
 │   └── theme/               # Material 3 theming
 └── features/
     └── subscriptions/       # Feature module
-        ├── models/          # Data models
-        ├── providers/       # Riverpod state management
+        ├── models/          # Data models (Subscription, BillingCycle, Category)
+        ├── providers/       # Async Riverpod state management
         ├── screens/         # Full-screen widgets
+        ├── services/        # Subscription API service
         └── widgets/         # Reusable components
 ```
 
-**State Management**: Riverpod 2.x with code generation (`@riverpod` annotations).
+### Backend Structure
 
-**Data Storage**: In-memory only. No persistence layer exists.
+```
+api/
+├── src/SubTracker.Api/
+│   ├── Common/              # Shared abstractions (IDateTimeProvider, INotificationService)
+│   ├── Database/            # EF Core DbContext + DatabaseSeeder
+│   ├── Features/
+│   │   ├── Subscriptions/   # CRUD endpoints + Domain + DTOs
+│   │   └── Notifications/   # Pushover + Background Jobs
+│   ├── Migrations/          # EF Core migrations
+│   └── Program.cs
+└── tests/SubTracker.Api.Tests/
+```
+
+**State Management**: Riverpod 2.x with code generation (`@riverpod` annotations) using AsyncNotifier for API integration.
+
+**Data Storage**: SQLite via Entity Framework Core. No local storage in Flutter — all data flows through the API.
+
+**Environment Configuration**: API base URL loaded from `.env` file at runtime via `flutter_dotenv`.
 
 ## Code Style Guidelines
 
@@ -113,7 +165,7 @@ double get monthlyAmount => billingCycle.monthlyEquivalent(amount);
 DateTime addMonths(int months) { ... }
 
 // Local variables - type inference
-final store = ref.read(subscriptionStoreProvider);
+final api = ref.read(subscriptionApiServiceProvider);
 ```
 
 ### Formatting
@@ -131,13 +183,22 @@ final store = ref.read(subscriptionStoreProvider);
 - Use `ConsumerStatefulWidget` for stateful widgets with Riverpod
 - Use `super.key` constructor syntax: `const MyWidget({super.key})`
 - Create private widgets for screen-specific components
+- Use `AsyncValue.when()` for handling loading/error/data states
 
 ```dart
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
   
   @override
-  Widget build(BuildContext context, WidgetRef ref) { ... }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final subscriptionsAsync = ref.watch(subscriptionsNotifierProvider);
+    
+    return subscriptionsAsync.when(
+      data: (subscriptions) => ListView(...),
+      loading: () => const CircularProgressIndicator(),
+      error: (error, stack) => ErrorWidget(error),
+    );
+  }
 }
 ```
 
@@ -147,19 +208,25 @@ class HomeScreen extends ConsumerWidget {
 - Use null safety guards with conditional checks
 - Check `mounted` before `setState` after async operations
 - Use confirmation dialogs for destructive actions
+- Show SnackBars for API error feedback
+- Use try/catch with `ApiException` for HTTP errors
 
 ```dart
-// Form validation
-validator: (value) {
-  if (value == null || value.trim().isEmpty) {
-    return 'Please enter a name';
+// Async API call with error handling
+Future<void> _save() async {
+  setState(() => _isLoading = true);
+  try {
+    await notifier.create(...);
+    if (mounted) context.pop();
+  } catch (error) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $error')),
+      );
+    }
+  } finally {
+    if (mounted) setState(() => _isLoading = false);
   }
-  return null;
-}
-
-// Async safety
-if (mounted) {
-  context.pop();
 }
 ```
 
@@ -167,16 +234,17 @@ if (mounted) {
 
 - Use `ref.watch()` for reactive state in build methods
 - Use `ref.read()` for one-time reads in callbacks
-- Call `ref.invalidateSelf()` after mutations to notify watchers
+- Use `AsyncNotifier` for providers that interact with the API
+- Call `ref.invalidateSelf()` after mutations to refresh state
 - Add `part 'filename.g.dart';` directive for code generation
 
 ```dart
-// Watching state
-final subscriptions = ref.watch(subscriptionsListProvider);
+// Watching async state
+final subscriptionsAsync = ref.watch(subscriptionsNotifierProvider);
 
-// Mutations in callbacks
-onPressed: () {
-  ref.read(subscriptionNotifierProvider.notifier).delete(id);
+// Mutations in callbacks (async)
+onPressed: () async {
+  await ref.read(subscriptionsNotifierProvider.notifier).delete(id);
 }
 ```
 
@@ -184,6 +252,7 @@ onPressed: () {
 
 - Immutable with all `final` fields
 - Include `copyWith()` method for updates
+- Include `fromJson()` / `toJson()` for API serialization
 - Use computed getters for derived properties
 - Use enums with enhanced features (properties and methods)
 
@@ -209,13 +278,18 @@ void main() {
 
 Common matchers: `equals()`, `closeTo(value, delta)`, `isTrue`, `isFalse`
 
+**Run both test suites before committing:**
+```bash
+flutter test && cd api && dotnet test
+```
+
 ## UI Constants
 
 - Border radius: 12px
 - Content padding: 16px
 - Section spacing: 24px
 - Primary color: Indigo (#6366F1)
-- "Due Soon" indicator: Red (subscriptions due within 7 days)
+- "Due Soon" indicator: Red (configurable via `reminderDaysBefore`, default: 2 days)
 
 ## Code Generation Workflow
 
@@ -223,3 +297,9 @@ After modifying files with `@riverpod` annotations:
 1. Ensure `part 'filename.g.dart';` directive exists
 2. Run `dart run build_runner build --delete-conflicting-outputs`
 3. Verify generated `.g.dart` file is created/updated
+
+## Environment Setup
+
+1. Copy `.env.example` to `.env`
+2. Adjust `API_BASE_URL` if the backend runs on a different port/host
+3. The `.env` file is declared as a Flutter asset and loaded at runtime

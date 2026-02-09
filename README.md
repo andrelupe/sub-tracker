@@ -1,151 +1,152 @@
 # SubTracker
 
-Complete subscription management system with Flutter frontend and .NET backend.
+A full-stack subscription management app built with **Flutter** and **.NET 10**. Track recurring expenses, visualize monthly and yearly spending, get notified before bills are due, and stay on top of your subscriptions across web, mobile, and desktop.
 
-## Components
+## Features
 
-| Component    | Technology                  | Version |
-| ------------ | --------------------------- | ------- |
-| **Frontend** | Flutter (Web/Mobile/Desktop) | v2.0.0  |
-| **Backend**  | .NET 10 + FastEndpoints      | v2.0.0  |
+- **Subscription tracking** -- manage name, amount, currency (EUR/USD/GBP), billing cycle, category, start date, and URL
+- **Spending overview** -- monthly and yearly totals calculated from all active subscriptions, normalized across billing cycles
+- **Due soon alerts** -- visual indicators for subscriptions due within a configurable window (0-30 days)
+- **Push notifications** -- automatic Pushover alerts for upcoming bills via a background job
+- **Search, filter, and sort** -- find subscriptions by name, description, or category; sort by date, name, amount, or category
+- **Swipe actions** -- pause/resume or delete subscriptions with swipe gestures
+- **Active/Inactive toggle** -- pause tracking without losing data
+- **Dark mode** -- follows system theme with full Material 3 support
+- **Cross-platform** -- runs on Web, macOS, iOS, Android, Linux, and Windows
+- **Demo data** -- seeds 12 realistic subscriptions in development mode for quick testing
 
----
+## Tech Stack
 
-## Frontend (Flutter)
+| Layer        | Technology                                                               |
+| ------------ | ------------------------------------------------------------------------ |
+| **Frontend** | Flutter 3.x, Riverpod 2.x (code-gen), GoRouter, Material 3             |
+| **Backend**  | .NET 10, FastEndpoints, Entity Framework Core, SQLite, Serilog          |
+| **Infra**    | Docker, docker-compose                                                  |
+| **Testing**  | Flutter test, xUnit, very_good_analysis                                 |
 
-### Getting Started
+## Architecture
+
+```
+Flutter UI --> Riverpod AsyncNotifier --> HTTP API Service --> .NET FastEndpoints --> SQLite
+```
+
+Both frontend and backend follow a **Vertical Slice Architecture** -- each feature is self-contained with its own models, services, state management, and UI components.
+
+<details>
+<summary>Project structure</summary>
+
+```
+sub-tracker/
+├── lib/                             # Flutter frontend
+│   ├── core/
+│   │   ├── constants/               # App constants + env config
+│   │   ├── extensions/              # DateTime extension methods
+│   │   ├── providers/               # API service Riverpod providers
+│   │   ├── router/                  # GoRouter configuration
+│   │   ├── services/                # Generic HTTP API client
+│   │   └── theme/                   # Material 3 theming (light + dark)
+│   ├── features/
+│   │   └── subscriptions/
+│   │       ├── models/              # Subscription, BillingCycle, Category, SortOption
+│   │       ├── providers/           # Async Riverpod state management
+│   │       ├── screens/             # HomeScreen, SubscriptionFormScreen
+│   │       ├── services/            # Subscription API service
+│   │       └── widgets/             # ListTile, SummaryCard, FilterSortBar
+│   └── main.dart
+│
+├── api/                             # .NET backend
+│   ├── src/SubTracker.Api/
+│   │   ├── Common/                  # Shared abstractions (IDateTimeProvider, INotificationService)
+│   │   ├── Database/                # EF Core DbContext + DatabaseSeeder
+│   │   ├── Features/
+│   │   │   ├── Subscriptions/       # CRUD endpoints + Domain + DTOs
+│   │   │   └── Notifications/       # Pushover + Background Jobs
+│   │   ├── Migrations/              # EF Core migrations
+│   │   └── Program.cs
+│   ├── tests/SubTracker.Api.Tests/  # xUnit domain tests
+│   └── docker-compose.yml
+│
+├── test/                            # Flutter tests
+├── .env.example                     # Environment template
+└── README.md
+```
+
+</details>
+
+## Getting Started
+
+### Prerequisites
+
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) (>= 3.2.0)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- [Docker](https://www.docker.com/) (optional, for containerized backend)
+
+### 1. Clone the repository
 
 ```bash
-# Install dependencies
-flutter pub get
+git clone https://github.com/andrelupe/sub-tracker.git
+cd sub-tracker
+```
 
-# Generate Riverpod providers
-dart run build_runner build --delete-conflicting-outputs
+### 2. Start the backend
 
-# Create .env file from template
+```bash
+cd api/src/SubTracker.Api
+dotnet run
+```
+
+The API starts on `http://localhost:5270` with Swagger at `http://localhost:5270/swagger`. In development mode, the database is auto-migrated and seeded with 12 demo subscriptions.
+
+### 3. Start the frontend
+
+```bash
+# Back to the project root
 cp .env.example .env
 
-# Run on Chrome
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs
 flutter run -d chrome
-
-# Run on macOS
-flutter run -d macos
 ```
 
-### Features
+> Both the backend and frontend must be running simultaneously. The frontend reads the API URL from the `.env` file.
 
-- Track subscriptions with name, amount, and billing cycle
-- View monthly and yearly spending totals
-- See subscriptions due soon
-- Swipe to pause or delete subscriptions
-- Loading states and error handling for all API operations
-- Search and filter subscriptions by category
+## API Endpoints
 
-### Architecture
+| Method   | Endpoint                    | Description              |
+| -------- | --------------------------- | ------------------------ |
+| `GET`    | `/api/subscriptions`        | List all subscriptions   |
+| `GET`    | `/api/subscriptions/{id}`   | Get subscription by ID   |
+| `POST`   | `/api/subscriptions`        | Create a subscription    |
+| `PUT`    | `/api/subscriptions/{id}`   | Update a subscription    |
+| `DELETE` | `/api/subscriptions/{id}`   | Delete a subscription    |
+| `GET`    | `/swagger`                  | Swagger UI documentation |
 
-Vertical Slices with Riverpod (async) for state management, HTTP API client for data.
+## Docker
 
-```
-lib/
-├── core/
-│   ├── constants/          # App constants + env config
-│   ├── extensions/         # DateTime extensions
-│   ├── providers/          # API service providers
-│   ├── router/             # GoRouter configuration
-│   ├── services/           # HTTP API client
-│   └── theme/              # Material 3 theming
-├── features/
-│   └── subscriptions/
-│       ├── models/         # Subscription, BillingCycle, Category
-│       ├── providers/      # Async Riverpod state management
-│       ├── screens/        # HomeScreen, SubscriptionFormScreen
-│       ├── services/       # Subscription API service
-│       └── widgets/        # ListTile, SummaryCard, FilterBar
-└── main.dart
+Run the backend in a container with persistent storage:
+
+```bash
+cd api
+docker-compose up -d
 ```
 
-### Environment Configuration
+The API will be available on `http://localhost:5080`. Data is persisted in a Docker volume.
 
-The API base URL is configured via a `.env` file (loaded at runtime with `flutter_dotenv`):
+To configure push notifications, set environment variables before running:
+
+```bash
+PUSHOVER_API_TOKEN=your_token PUSHOVER_USER_KEY=your_key docker-compose up -d
+```
+
+## Configuration
+
+### Frontend (.env)
 
 ```env
 API_BASE_URL=http://localhost:5270/api
 ```
 
-For Docker deployments, mount a different `.env` file:
-```yaml
-volumes:
-  - ./production.env:/app/.env
-```
-
----
-
-## Backend (.NET API)
-
-### Technologies
-
-- **.NET 10** (ASP.NET Core)
-- **FastEndpoints** (structured endpoints + validation)
-- **Entity Framework Core** + SQLite
-- **Serilog** (structured logging)
-- **Pushover** (push notifications)
-
-### Architecture
-
-**Vertical Slice Architecture** with domain encapsulation:
-
-```
-api/
-├── src/SubTracker.Api/
-│   ├── Common/                 # Shared services (DateTime, Notifications)
-│   ├── Database/               # EF Core DbContext + DatabaseSeeder
-│   ├── Features/
-│   │   ├── Subscriptions/      # Complete feature
-│   │   │   ├── Domain/         # Entities + domain logic
-│   │   │   ├── Shared/         # DTOs + Mappers
-│   │   │   ├── GetAllEndpoint.cs
-│   │   │   ├── CreateEndpoint.cs
-│   │   │   └── ...
-│   │   └── Notifications/      # Pushover + Background Jobs
-│   ├── Migrations/             # EF Core migrations
-│   └── Program.cs
-└── tests/SubTracker.Api.Tests/
-```
-
-### Endpoints
-
-| Method | Endpoint                  | Description   |
-| ------ | ------------------------- | ------------- |
-| GET    | `/api/subscriptions`      | List all      |
-| GET    | `/api/subscriptions/{id}` | Get by ID     |
-| POST   | `/api/subscriptions`      | Create new    |
-| PUT    | `/api/subscriptions/{id}` | Update        |
-| DELETE | `/api/subscriptions/{id}` | Delete        |
-| GET    | `/swagger`                | Documentation |
-
-### Quick Start
-
-```bash
-cd api/src/SubTracker.Api
-
-# Run API (auto-migrates + seeds dummy data in Development)
-dotnet run
-
-# Run tests
-cd ../..
-dotnet test
-
-# Docker
-docker-compose up -d
-```
-
-### Dummy Data
-
-In **Development** mode, the API automatically seeds 12 realistic subscriptions (Netflix, Spotify, GitHub Pro, etc.) on first run. The seed only runs when the database is empty.
-
-### Configuration
-
-**appsettings.json:**
+### Backend (appsettings.json)
 
 ```json
 {
@@ -159,47 +160,26 @@ In **Development** mode, the API automatically seeds 12 realistic subscriptions 
 }
 ```
 
-### Features
+Pushover notifications are optional. Without valid credentials, the background job runs but notifications are silently skipped.
 
-- Complete CRUD with FluentValidation
-- Domain logic encapsulated (next billing date calculation)
-- Background job checks due subscriptions (hourly)
-- Pushover notifications (automatic)
-- Development data seeder (12 subscriptions)
-- Unit tests (8 tests passing)
-- Docker production ready
-- Auto-migration on startup
+## Running Tests
 
----
+```bash
+# Flutter tests
+flutter test
 
-## Local Development
-
-1. **Backend**: `cd api/src/SubTracker.Api && dotnet run` (port 5270)
-2. **Frontend**: `flutter run -d chrome`
-
-Both must be running simultaneously. The frontend reads the API URL from `.env`.
-
----
-
-## Project Structure
-
-```
-sub-tracker/
-├── lib/                        # Flutter frontend
-├── api/                        # .NET backend
-│   ├── src/SubTracker.Api/
-│   ├── tests/
-│   └── docker-compose.yml
-├── .env.example                # Environment template
-├── AGENTS.md                   # AI agent guidelines
-├── CLAUDE.md                   # Claude Code guidelines
-└── README.md
+# .NET tests
+cd api && dotnet test
 ```
 
-## Data Flow
+## Contributing
 
-```
-Flutter UI → Riverpod Providers → HTTP API Service → .NET Backend → SQLite
-```
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Commit your changes (`git commit -m 'Add my feature'`)
+4. Push to the branch (`git push origin feature/my-feature`)
+5. Open a Pull Request
 
-All data is managed by the API. The Flutter app is a pure frontend client with no local storage.
+## License
+
+This project is licensed under the [MIT License](LICENSE).

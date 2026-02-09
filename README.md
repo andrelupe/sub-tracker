@@ -1,5 +1,11 @@
 # SubTracker
 
+![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white)
+![.NET](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?logo=sqlite&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green)
+
 A full-stack subscription management app built with **Flutter** and **.NET 10**. Track recurring expenses, visualize monthly and yearly spending, get notified before bills are due, and stay on top of your subscriptions across web, mobile, and desktop.
 
 ## Features
@@ -17,12 +23,12 @@ A full-stack subscription management app built with **Flutter** and **.NET 10**.
 
 ## Tech Stack
 
-| Layer        | Technology                                                               |
-| ------------ | ------------------------------------------------------------------------ |
-| **Frontend** | Flutter 3.x, Riverpod 2.x (code-gen), GoRouter, Material 3             |
-| **Backend**  | .NET 10, FastEndpoints, Entity Framework Core, SQLite, Serilog          |
-| **Infra**    | Docker, docker-compose                                                  |
-| **Testing**  | Flutter test, xUnit, very_good_analysis                                 |
+| Layer        | Technology                                                     |
+| ------------ | -------------------------------------------------------------- |
+| **Frontend** | Flutter 3.x, Riverpod 2.x (code-gen), GoRouter, Material 3     |
+| **Backend**  | .NET 10, FastEndpoints, Entity Framework Core, SQLite, Serilog |
+| **Infra**    | Docker, docker-compose                                         |
+| **Testing**  | Flutter test, xUnit, very_good_analysis                        |
 
 ## Architecture
 
@@ -112,14 +118,14 @@ flutter run -d chrome
 
 ## API Endpoints
 
-| Method   | Endpoint                    | Description              |
-| -------- | --------------------------- | ------------------------ |
-| `GET`    | `/api/subscriptions`        | List all subscriptions   |
-| `GET`    | `/api/subscriptions/{id}`   | Get subscription by ID   |
-| `POST`   | `/api/subscriptions`        | Create a subscription    |
-| `PUT`    | `/api/subscriptions/{id}`   | Update a subscription    |
-| `DELETE` | `/api/subscriptions/{id}`   | Delete a subscription    |
-| `GET`    | `/swagger`                  | Swagger UI documentation |
+| Method   | Endpoint                  | Description              |
+| -------- | ------------------------- | ------------------------ |
+| `GET`    | `/api/subscriptions`      | List all subscriptions   |
+| `GET`    | `/api/subscriptions/{id}` | Get subscription by ID   |
+| `POST`   | `/api/subscriptions`      | Create a subscription    |
+| `PUT`    | `/api/subscriptions/{id}` | Update a subscription    |
+| `DELETE` | `/api/subscriptions/{id}` | Delete a subscription    |
+| `GET`    | `/swagger`                | Swagger UI documentation |
 
 ## Docker
 

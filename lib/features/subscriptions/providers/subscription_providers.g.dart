@@ -6,7 +6,7 @@ part of 'subscription_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$subscriptionsListHash() => r'f39294e9bbab723b86865de504601691492eb0e9';
+String _$subscriptionsListHash() => r'a3c9ec30c88d0ce2ff68f743889949baa0adcb32';
 
 /// See also [subscriptionsList].
 @ProviderFor(subscriptionsList)

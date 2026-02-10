@@ -13,6 +13,8 @@ A full-stack subscription management app built with **Flutter** and **.NET 10**.
 <p align="center">
   <img src="screenshots/main-page.png" alt="Dashboard - subscription list with spending overview" width="300" />
   &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="screenshots/main-page-inactive-subs.png" alt="Dashboard - subscription list with inactive subscriptions" width="300" />
+  &nbsp;&nbsp;&nbsp;&nbsp;
   <img src="screenshots/add-subscription.png" alt="Add subscription form" width="300" />
 </p>
 

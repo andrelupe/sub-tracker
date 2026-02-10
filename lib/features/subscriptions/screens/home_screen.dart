@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -42,18 +44,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final searchQuery = ref.watch(searchQueryProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('SubTracker'),
-        actions: [
-          if (asyncSubscriptions.hasValue)
-            if (ref.watch(hasActiveFiltersProvider))
-              TextButton.icon(
-                onPressed: () => _clearAllFilters(ref),
-                icon: const Icon(Icons.clear_all),
-                label: const Text('Clear'),
-              ),
-        ],
-      ),
       body: asyncSubscriptions.when(
         data: (allSubscriptions) {
           if (allSubscriptions.isEmpty) {
@@ -106,7 +96,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const FilterSortBar(),
+                FilterSortBar(
+                  onClearFilters: () => _clearAllFilters(ref),
+                ),
                 const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -128,6 +120,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
+                _AddSubscriptionCard(
+                  onTap: () => context.push(AppRoutes.addSubscription),
+                ),
+                const SizedBox(height: 8),
                 if (filteredSubscriptions.isEmpty && hasActiveFilters)
                   _NoResultsState(query: searchQuery)
                 else
@@ -144,7 +140,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 const SizedBox(height: 32),
                 const _VersionFooter(),
-                const SizedBox(height: 80),
+                const SizedBox(height: 16),
               ],
             ),
           );
@@ -157,13 +153,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           onRetry: () => ref.invalidate(subscriptionsNotifierProvider),
         ),
       ),
-      floatingActionButton: asyncSubscriptions.hasValue
-          ? FloatingActionButton.extended(
-              onPressed: () => context.push(AppRoutes.addSubscription),
-              icon: const Icon(Icons.add),
-              label: const Text('Add'),
-            )
-          : null,
     );
   }
 }
@@ -296,6 +285,99 @@ class _NoResultsState extends StatelessWidget {
       ),
     );
   }
+}
+
+class _AddSubscriptionCard extends StatelessWidget {
+  const _AddSubscriptionCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: CustomPaint(
+        painter: _DashedBorderPainter(
+          color: colorScheme.outline,
+          borderRadius: 12,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.add_circle_outline,
+                color: colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Add Subscription',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DashedBorderPainter extends CustomPainter {
+  _DashedBorderPainter({
+    required this.color,
+    required this.borderRadius,
+  });
+
+  final Color color;
+  final double borderRadius;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color.withValues(alpha: 0.4)
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+
+    final rrect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Radius.circular(borderRadius),
+    );
+
+    final path = Path()..addRRect(rrect);
+    final dashPath = _createDashedPath(path);
+    canvas.drawPath(dashPath, paint);
+  }
+
+  Path _createDashedPath(Path source) {
+    const dashWidth = 6.0;
+    const dashSpace = 4.0;
+    final dashedPath = Path();
+
+    for (final metric in source.computeMetrics()) {
+      var distance = 0.0;
+      while (distance < metric.length) {
+        final end = math.min(distance + dashWidth, metric.length);
+        dashedPath.addPath(
+          metric.extractPath(distance, end),
+          Offset.zero,
+        );
+        distance += dashWidth + dashSpace;
+      }
+    }
+
+    return dashedPath;
+  }
+
+  @override
+  bool shouldRepaint(_DashedBorderPainter oldDelegate) =>
+      color != oldDelegate.color || borderRadius != oldDelegate.borderRadius;
 }
 
 class _VersionFooter extends StatelessWidget {

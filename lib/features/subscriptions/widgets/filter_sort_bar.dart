@@ -6,7 +6,9 @@ import 'package:subtracker/features/subscriptions/providers/subscription_provide
 
 /// A horizontal bar with filter chips for category and sort options.
 class FilterSortBar extends ConsumerWidget {
-  const FilterSortBar({super.key});
+  const FilterSortBar({super.key, this.onClearFilters});
+
+  final VoidCallback? onClearFilters;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -14,6 +16,7 @@ class FilterSortBar extends ConsumerWidget {
     final sortBy = ref.watch(sortByProvider);
     final sortAscending = ref.watch(sortAscendingProvider);
     final showInactive = ref.watch(showInactiveProvider);
+    final hasActiveFilters = ref.watch(hasActiveFiltersProvider);
 
     return Wrap(
       spacing: 8,
@@ -57,6 +60,13 @@ class FilterSortBar extends ConsumerWidget {
             ref.read(showInactiveProvider.notifier).toggle();
           },
         ),
+        // Clear all filters chip
+        if (hasActiveFilters)
+          ActionChip(
+            avatar: const Icon(Icons.clear_all, size: 18),
+            label: const Text('Clear'),
+            onPressed: onClearFilters,
+          ),
       ],
     );
   }

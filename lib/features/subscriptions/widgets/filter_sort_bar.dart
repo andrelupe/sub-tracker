@@ -13,6 +13,7 @@ class FilterSortBar extends ConsumerWidget {
     final selectedCategory = ref.watch(categoryFilterProvider);
     final sortBy = ref.watch(sortByProvider);
     final sortAscending = ref.watch(sortAscendingProvider);
+    final showInactive = ref.watch(showInactiveProvider);
 
     return Wrap(
       spacing: 8,
@@ -41,6 +42,19 @@ class FilterSortBar extends ConsumerWidget {
                   .read(sortAscendingProvider.notifier)
                   .set(option.defaultAscending);
             }
+          },
+        ),
+        // Show inactive toggle chip
+        FilterChip(
+          avatar: Icon(
+            showInactive ? Icons.visibility : Icons.visibility_off,
+            size: 18,
+          ),
+          label: const Text('Show inactive'),
+          selected: showInactive,
+          showCheckmark: false,
+          onSelected: (_) {
+            ref.read(showInactiveProvider.notifier).toggle();
           },
         ),
       ],

@@ -31,6 +31,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ref.read(categoryFilterProvider.notifier).clear();
     ref.read(sortByProvider.notifier).select(SortOption.nextBillingDate);
     ref.read(sortAscendingProvider.notifier).set(true);
+    if (ref.read(showInactiveProvider)) {
+      ref.read(showInactiveProvider.notifier).toggle();
+    }
   }
 
   @override
@@ -62,6 +65,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           final filteredSubscriptions =
               ref.watch(filteredSubscriptionsProvider);
           final hasActiveFilters = ref.watch(hasActiveFiltersProvider);
+          final showInactive = ref.watch(showInactiveProvider);
 
           return RefreshIndicator(
             onRefresh: () async {
@@ -110,7 +114,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     Text(
                       hasActiveFilters
                           ? 'Filtered Results'
-                          : 'Active Subscriptions',
+                          : showInactive
+                              ? 'Inactive Subscriptions'
+                              : 'Active Subscriptions',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     Text(

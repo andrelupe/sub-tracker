@@ -137,7 +137,37 @@ flutter run -d chrome
 
 ## Docker
 
-Run the backend in a container with persistent storage:
+Pull the image from Docker Hub:
+
+```bash
+docker pull andrelppereira/subtracker-api:latest
+```
+
+Or run directly:
+
+```bash
+docker run -d \
+  -p 5080:8080 \
+  -v subtracker-data:/data \
+  -e ConnectionStrings__Default="Data Source=/data/subtracker.db" \
+  andrelppereira/subtracker-api:latest
+```
+
+With Pushover notifications:
+
+```bash
+docker run -d \
+  -p 5080:8080 \
+  -v subtracker-data:/data \
+  -e ConnectionStrings__Default="Data Source=/data/subtracker.db" \
+  -e Pushover__ApiToken=your_token \
+  -e Pushover__UserKey=your_key \
+  andrelppereira/subtracker-api:latest
+```
+
+### Build locally
+
+Alternatively, build and run from source:
 
 ```bash
 cd api
@@ -145,12 +175,6 @@ docker-compose up -d
 ```
 
 The API will be available on `http://localhost:5080`. Data is persisted in a Docker volume.
-
-To configure push notifications, set environment variables before running:
-
-```bash
-PUSHOVER_API_TOKEN=your_token PUSHOVER_USER_KEY=your_key docker-compose up -d
-```
 
 ## Configuration
 

@@ -160,6 +160,64 @@ public static class DatabaseSeeder
         };
 
         db.Subscriptions.AddRange(subscriptions);
+
+        // Inactive (paused) subscriptions
+        var inactiveSubscriptions = new[]
+        {
+            Subscription.Create(
+                name: "HBO Max",
+                description: "Cancelled after trial",
+                amount: 8.99m,
+                currency: "EUR",
+                billingCycle: BillingCycle.Monthly,
+                category: SubscriptionCategory.Entertainment,
+                startDate: utcNow.AddMonths(-4).AddDays(-10),
+                url: "https://max.com",
+                reminderDaysBefore: 2,
+                utcNow: utcNow),
+
+            Subscription.Create(
+                name: "Duolingo Plus",
+                description: "Language learning - paused",
+                amount: 6.99m,
+                currency: "EUR",
+                billingCycle: BillingCycle.Monthly,
+                category: SubscriptionCategory.Education,
+                startDate: utcNow.AddMonths(-8).AddDays(-5),
+                url: "https://duolingo.com",
+                reminderDaysBefore: 2,
+                utcNow: utcNow),
+
+            Subscription.Create(
+                name: "Disney+",
+                description: "Shared plan - no longer needed",
+                amount: 89.90m,
+                currency: "EUR",
+                billingCycle: BillingCycle.Yearly,
+                category: SubscriptionCategory.Entertainment,
+                startDate: utcNow.AddMonths(-10).AddDays(-14),
+                url: "https://disneyplus.com",
+                reminderDaysBefore: 7,
+                utcNow: utcNow),
+        };
+
+        foreach (var sub in inactiveSubscriptions)
+        {
+            sub.Update(
+                name: sub.Name,
+                description: sub.Description,
+                amount: sub.Amount,
+                currency: sub.Currency,
+                billingCycle: sub.BillingCycle,
+                category: sub.Category,
+                startDate: sub.StartDate,
+                url: sub.Url,
+                reminderDaysBefore: sub.ReminderDaysBefore,
+                isActive: false,
+                utcNow: utcNow);
+        }
+
+        db.Subscriptions.AddRange(inactiveSubscriptions);
         await db.SaveChangesAsync();
     }
 }

@@ -314,6 +314,115 @@ void main() {
         container.read(sortAscendingProvider.notifier).set(false);
         expect(container.read(hasActiveFiltersProvider), isTrue);
       });
+
+      test('returns true when showInactive is enabled', () {
+        container.read(showInactiveProvider.notifier).toggle();
+        expect(container.read(hasActiveFiltersProvider), isTrue);
+      });
+    });
+
+    group('ShowInactive', () {
+      test('initial value is false', () {
+        expect(container.read(showInactiveProvider), isFalse);
+      });
+
+      test('toggle changes the value', () {
+        container.read(showInactiveProvider.notifier).toggle();
+        expect(container.read(showInactiveProvider), isTrue);
+        container.read(showInactiveProvider.notifier).toggle();
+        expect(container.read(showInactiveProvider), isFalse);
+      });
+    });
+  });
+
+  group('ShowInactive with inactive subscriptions', () {
+    late ProviderContainer container;
+
+    setUp(() {
+      final now = DateTime.now();
+
+      final testSubscriptions = [
+        Subscription(
+          id: '1',
+          name: 'Netflix',
+          amount: 15.99,
+          currency: 'EUR',
+          billingCycle: BillingCycle.monthly,
+          category: SubscriptionCategory.entertainment,
+          startDate: now.subtract(const Duration(days: 30)),
+          nextBillingDate: now.add(const Duration(days: 5)),
+          createdAt: now,
+          updatedAt: now,
+        ),
+        Subscription(
+          id: '2',
+          name: 'Spotify',
+          amount: 9.99,
+          currency: 'EUR',
+          billingCycle: BillingCycle.monthly,
+          category: SubscriptionCategory.music,
+          startDate: now.subtract(const Duration(days: 20)),
+          nextBillingDate: now.add(const Duration(days: 10)),
+          createdAt: now,
+          updatedAt: now,
+        ),
+        Subscription(
+          id: '3',
+          name: 'HBO Max',
+          amount: 12.99,
+          currency: 'EUR',
+          billingCycle: BillingCycle.monthly,
+          category: SubscriptionCategory.entertainment,
+          isActive: false,
+          startDate: now.subtract(const Duration(days: 60)),
+          nextBillingDate: now.add(const Duration(days: 15)),
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ];
+
+      container = ProviderContainer(
+        overrides: [
+          subscriptionsListProvider.overrideWithValue(testSubscriptions),
+        ],
+      );
+    });
+
+    tearDown(() {
+      container.dispose();
+    });
+
+    test('filtered results include inactive when list contains them', () {
+      final result = container.read(filteredSubscriptionsProvider);
+      expect(result.length, 3);
+    });
+
+    test('search works with inactive subscriptions', () {
+      container.read(searchQueryProvider.notifier).update('hbo');
+      final result = container.read(filteredSubscriptionsProvider);
+      expect(result.length, 1);
+      expect(result.first.name, 'HBO Max');
+      expect(result.first.isActive, isFalse);
+    });
+
+    test('category filter works with inactive subscriptions', () {
+      container
+          .read(categoryFilterProvider.notifier)
+          .select(SubscriptionCategory.entertainment);
+      final result = container.read(filteredSubscriptionsProvider);
+      expect(result.length, 2);
+      expect(result.map((s) => s.name).toList(), contains('Netflix'));
+      expect(result.map((s) => s.name).toList(), contains('HBO Max'));
+    });
+
+    test('search and category filter combined with inactive subscriptions', () {
+      container.read(searchQueryProvider.notifier).update('hbo');
+      container
+          .read(categoryFilterProvider.notifier)
+          .select(SubscriptionCategory.entertainment);
+      final result = container.read(filteredSubscriptionsProvider);
+      expect(result.length, 1);
+      expect(result.first.name, 'HBO Max');
     });
   });
 }

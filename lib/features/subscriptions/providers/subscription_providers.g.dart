@@ -6,7 +6,7 @@ part of 'subscription_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$subscriptionsListHash() => r'cb4000f1521b3a070a27d9c4ab16a1801340b201';
+String _$subscriptionsListHash() => r'f39294e9bbab723b86865de504601691492eb0e9';
 
 /// See also [subscriptionsList].
 @ProviderFor(subscriptionsList)
@@ -233,7 +233,7 @@ final filteredSubscriptionsProvider =
 );
 
 typedef FilteredSubscriptionsRef = AutoDisposeProviderRef<List<Subscription>>;
-String _$hasActiveFiltersHash() => r'14a2b6544f748a4b1ed6b77859ba80b94c1ab884';
+String _$hasActiveFiltersHash() => r'26429e3caac7c0fb2af043a93b2e3d6669420a49';
 
 /// See also [hasActiveFilters].
 @ProviderFor(hasActiveFilters)
@@ -267,6 +267,21 @@ final subscriptionsNotifierProvider =
 );
 
 typedef _$SubscriptionsNotifier = AsyncNotifier<List<Subscription>>;
+String _$showInactiveHash() => r'939eea7a5faa753da048b6fe9e2079a6d1ec54cc';
+
+/// See also [ShowInactive].
+@ProviderFor(ShowInactive)
+final showInactiveProvider =
+    AutoDisposeNotifierProvider<ShowInactive, bool>.internal(
+  ShowInactive.new,
+  name: r'showInactiveProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$showInactiveHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$ShowInactive = AutoDisposeNotifier<bool>;
 String _$searchQueryHash() => r'790bd96a8a13bb944767c7bf06a5378cfc78a54d';
 
 /// See also [SearchQuery].

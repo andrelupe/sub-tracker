@@ -88,8 +88,11 @@ class SubscriptionsNotifier extends _$SubscriptionsNotifier {
 @riverpod
 List<Subscription> subscriptionsList(SubscriptionsListRef ref) {
   final asyncSubs = ref.watch(subscriptionsNotifierProvider);
+  final showInactive = ref.watch(showInactiveProvider);
   return asyncSubs.when(
-    data: (subs) => subs.where((s) => s.isActive).toList(),
+    data: (subs) => showInactive
+        ? subs.where((s) => !s.isActive).toList()
+        : subs.where((s) => s.isActive).toList(),
     loading: () => [],
     error: (_, __) => [],
   );
@@ -151,6 +154,14 @@ Subscription? subscriptionById(SubscriptionByIdRef ref, String id) {
 }
 
 // Filter providers
+@riverpod
+class ShowInactive extends _$ShowInactive {
+  @override
+  bool build() => false;
+
+  void toggle() => state = !state;
+}
+
 @riverpod
 class SearchQuery extends _$SearchQuery {
   @override
@@ -236,9 +247,11 @@ bool hasActiveFilters(HasActiveFiltersRef ref) {
   final category = ref.watch(categoryFilterProvider);
   final sortBy = ref.watch(sortByProvider);
   final sortAscending = ref.watch(sortAscendingProvider);
+  final showInactive = ref.watch(showInactiveProvider);
 
   return query.isNotEmpty ||
       category != null ||
       sortBy != SortOption.nextBillingDate ||
-      !sortAscending;
+      !sortAscending ||
+      showInactive;
 }

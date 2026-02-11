@@ -227,8 +227,7 @@ cd api && dotnet test
 | v2.2.0  | Import/Export JSON        |
 | v2.3.0  | JWT Auth & Multi-currency |
 | v2.4.0  | Analytics & Charts        |
-
-| v2.5.0 | Multi-user support |
+| v2.5.0  | Multi-user support        |
 
 See [ROADMAP.md](ROADMAP.md) for details.
 

@@ -139,13 +139,19 @@ flutter run -d chrome
 
 ## Docker
 
-Pull the image from Docker Hub:
+### All-in-One (Frontend + API)
 
 ```bash
-docker pull andrelppereira/subtracker-api:latest
+docker run -d \
+  -p 80:80 \
+  -v subtracker-data:/data \
+  -e ConnectionStrings__Default="Data Source=/data/subtracker.db" \
+  andrelppereira/subtracker:latest
 ```
 
-Or run directly:
+Open `http://localhost` to access the app.
+
+### API Only
 
 ```bash
 docker run -d \
@@ -155,28 +161,24 @@ docker run -d \
   andrelppereira/subtracker-api:latest
 ```
 
-With Pushover notifications:
+### With Pushover Notifications
 
 ```bash
 docker run -d \
-  -p 5080:8080 \
+  -p 80:80 \
   -v subtracker-data:/data \
   -e ConnectionStrings__Default="Data Source=/data/subtracker.db" \
   -e Pushover__ApiToken=your_token \
   -e Pushover__UserKey=your_key \
-  andrelppereira/subtracker-api:latest
+  andrelppereira/subtracker:latest
 ```
 
 ### Build locally
-
-Alternatively, build and run from source:
 
 ```bash
 cd api
 docker-compose up -d
 ```
-
-The API will be available on `http://localhost:5080`. Data is persisted in a Docker volume.
 
 ## Configuration
 

@@ -36,6 +36,8 @@ Planned features and improvements for SubTracker.
 
 | Feature                      | Description                               |
 | ---------------------------- | ----------------------------------------- |
+| 🔑 OIDC support              | Login with Google, Apple, Microsoft, etc. |
+| ☀️ Light theme               | White/light mode option                   |
 | 📱 Native mobile app         | Flutter iOS/Android build                 |
 | 🔔 Native push notifications | Firebase Cloud Messaging                  |
 | 📅 Calendar integration      | Sync billing dates with calendar          |

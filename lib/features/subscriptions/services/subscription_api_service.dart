@@ -85,6 +85,12 @@ class SubscriptionApiService {
     await _apiService.delete('/subscriptions/$id');
   }
 
+  Future<void> importSubscriptions(
+    List<Map<String, dynamic>> subscriptions,
+  ) async {
+    await _apiService.postList('/subscriptions/import', subscriptions);
+  }
+
   Future<void> toggleSubscriptionStatus(String id, bool isActive) async {
     final subscription = await getSubscriptionById(id);
 

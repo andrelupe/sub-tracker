@@ -4,7 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 abstract final class AppConstants {
   /// Current application version.
   /// This should match the version in pubspec.yaml.
-  static const String version = '2.1.0';
+  static const String version = '2.2.0';
 
   /// Application name.
   static const String appName = 'SubTracker';

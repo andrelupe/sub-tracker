@@ -101,6 +101,37 @@ class ApiService {
     }
   }
 
+  Future<void> postList(
+    String endpoint,
+    List<Map<String, dynamic>> data,
+  ) async {
+    try {
+      final uri = Uri.parse('$_baseUrl$endpoint');
+      final response = await _client
+          .post(
+            uri,
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode(data),
+          )
+          .timeout(_timeout);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return;
+      } else if (response.statusCode == 400) {
+        final dynamic decoded = json.decode(response.body);
+        throw ValidationException(decoded as Map<String, dynamic>);
+      } else {
+        throw ApiException(
+          'Failed to import data: ${response.statusCode}',
+          response.statusCode,
+        );
+      }
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Network error: $e', 0);
+    }
+  }
+
   Future<void> put(String endpoint, Map<String, dynamic> data) async {
     try {
       final uri = Uri.parse('$_baseUrl$endpoint');

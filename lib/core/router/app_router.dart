@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:subtracker/features/settings/screens/settings_screen.dart';
 import 'package:subtracker/features/subscriptions/screens/home_screen.dart';
 import 'package:subtracker/features/subscriptions/screens/subscription_form_screen.dart';
 
@@ -10,6 +11,7 @@ abstract class AppRoutes {
   static const home = '/';
   static const addSubscription = '/subscription/add';
   static const editSubscription = '/subscription/edit/:id';
+  static const settings = '/settings';
 
   static String editSubscriptionPath(String id) => '/subscription/edit/$id';
 }
@@ -36,6 +38,11 @@ GoRouter appRouter(AppRouterRef ref) {
           final id = state.pathParameters['id']!;
           return SubscriptionFormScreen(subscriptionId: id);
         },
+      ),
+      GoRoute(
+        path: AppRoutes.settings,
+        name: 'settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

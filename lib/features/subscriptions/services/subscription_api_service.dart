@@ -88,7 +88,10 @@ class SubscriptionApiService {
   Future<void> importSubscriptions(
     List<Map<String, dynamic>> subscriptions,
   ) async {
-    await _apiService.postList('/subscriptions/import', subscriptions);
+    // Backend expects: {"subscriptions": [...]}
+    await _apiService.post('/subscriptions/import', {
+      'subscriptions': subscriptions,
+    });
   }
 
   Future<void> toggleSubscriptionStatus(String id, bool isActive) async {

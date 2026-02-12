@@ -29,8 +29,11 @@ class FileService {
       };
     }).toList();
 
+    // Wrap in subscriptions object
+    final wrappedData = {'subscriptions': exportData};
+
     const encoder = JsonEncoder.withIndent('  ');
-    return encoder.convert(exportData);
+    return encoder.convert(wrappedData);
   }
 
   /// Generates the export filename with current date.
@@ -48,14 +51,20 @@ class FileService {
     }
   }
 
-  /// Validates that the JSON content is a list of subscription-like objects.
+  /// Validates that the JSON content has a 'subscriptions' property with an array.
   List<Map<String, dynamic>>? validateImportJson(String jsonContent) {
     try {
       final dynamic decoded = json.decode(jsonContent);
-      if (decoded is! List) return null;
+
+      // Expect object format: {"subscriptions": [...]}
+      if (decoded is! Map<String, dynamic>) return null;
+      if (!decoded.containsKey('subscriptions')) return null;
+      if (decoded['subscriptions'] is! List) return null;
+
+      final subscriptionsList = decoded['subscriptions'] as List<dynamic>;
 
       final items = <Map<String, dynamic>>[];
-      for (final dynamic item in decoded) {
+      for (final dynamic item in subscriptionsList) {
         if (item is! Map<String, dynamic>) return null;
         if (!item.containsKey('name') || !item.containsKey('amount')) {
           return null;

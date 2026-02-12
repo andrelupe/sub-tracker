@@ -76,6 +76,12 @@ public sealed class Subscription
         UpdatedAt = utcNow;
     }
 
+    public void Deactivate(DateTime utcNow)
+    {
+        IsActive = false;
+        UpdatedAt = utcNow;
+    }
+
     public bool IsDueSoon(DateTime utcNow) =>
         IsActive && (NextBillingDate - utcNow).TotalDays <= ReminderDaysBefore;
 

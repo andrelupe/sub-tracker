@@ -224,12 +224,12 @@ cd api && dotnet test
 
 ## Roadmap
 
-| Version | Focus                     |
-| ------- | ------------------------- |
-| v2.2.0  | Import/Export JSON        |
-| v2.3.0  | JWT Auth & Multi-currency |
-| v2.4.0  | Analytics & Charts        |
-| v2.5.0  | Multi-user support        |
+| Version | Focus                           |
+| ------- | ------------------------------- |
+| v2.2.0  | Settings, Themes, Import/Export |
+| v2.3.0  | JWT Auth & Multi-currency       |
+| v2.4.0  | Analytics & Charts              |
+| v2.5.0  | Multi-user support              |
 
 See [ROADMAP.md](ROADMAP.md) for details.
 

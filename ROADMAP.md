@@ -2,12 +2,15 @@
 
 Planned features and improvements for SubTracker.
 
-## v2.2.0 — Data Management
+## v2.2.0 — Settings & Data Management
 
-| Feature        | Description                               |
-| -------------- | ----------------------------------------- |
-| 📥 Import JSON | Import subscriptions from a JSON file     |
-| 📤 Export JSON | Export subscriptions for backup/migration |
+| Feature            | Description                                  |
+| ------------------ | -------------------------------------------- |
+| ⚙️ Settings screen | Dedicated settings page accessible from home |
+| ☀️ Theme selector  | System / Light / Dark theme options          |
+| 📤 Export JSON     | Export subscriptions for backup/migration    |
+| 📥 Import JSON     | Import subscriptions from a JSON file        |
+| ℹ️ About section   | App version and GitHub link                  |
 
 ## v2.3.0 — Security & Multi-currency
 
@@ -37,7 +40,6 @@ Planned features and improvements for SubTracker.
 | Feature                      | Description                               |
 | ---------------------------- | ----------------------------------------- |
 | 🔑 OIDC support              | Login with Google, Apple, Microsoft, etc. |
-| ☀️ Light theme               | White/light mode option                   |
 | 📱 Native mobile app         | Flutter iOS/Android build                 |
 | 🔔 Native push notifications | Firebase Cloud Messaging                  |
 | 📅 Calendar integration      | Sync billing dates with calendar          |

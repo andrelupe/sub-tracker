@@ -34,12 +34,12 @@ A full-stack subscription management app built with **Flutter** and **.NET 10**.
 
 ## Tech Stack
 
-| Layer        | Technology                                                     |
-| ------------ | -------------------------------------------------------------- |
+| Layer        | Technology                                                                    |
+| ------------ | ----------------------------------------------------------------------------- |
 | **Frontend** | Flutter 3.x, Riverpod 2.x (code-gen), GoRouter, Material 3, SharedPreferences |
-| **Backend**  | .NET 10, FastEndpoints, Entity Framework Core, SQLite, Serilog |
-| **Infra**    | Docker, docker-compose                                         |
-| **Testing**  | Flutter test, xUnit, very_good_analysis                        |
+| **Backend**  | .NET 10, FastEndpoints, Entity Framework Core, SQLite, Serilog                |
+| **Infra**    | Docker, docker-compose                                                        |
+| **Testing**  | Flutter test, xUnit, very_good_analysis                                       |
 
 ## Architecture
 
@@ -134,15 +134,15 @@ flutter run -d chrome
 
 ## API Endpoints
 
-| Method   | Endpoint                      | Description                 |
-| -------- | ----------------------------- | --------------------------- |
-| `GET`    | `/api/subscriptions`          | List all subscriptions      |
-| `GET`    | `/api/subscriptions/{id}`     | Get subscription by ID      |
-| `POST`   | `/api/subscriptions`          | Create a subscription       |
-| `PUT`    | `/api/subscriptions/{id}`     | Update a subscription       |
-| `DELETE` | `/api/subscriptions/{id}`     | Delete a subscription       |
-| `POST`   | `/api/subscriptions/import`   | Import subscriptions (JSON) |
-| `GET`    | `/swagger`                    | Swagger UI documentation    |
+| Method   | Endpoint                    | Description                 |
+| -------- | --------------------------- | --------------------------- |
+| `GET`    | `/api/subscriptions`        | List all subscriptions      |
+| `GET`    | `/api/subscriptions/{id}`   | Get subscription by ID      |
+| `POST`   | `/api/subscriptions`        | Create a subscription       |
+| `PUT`    | `/api/subscriptions/{id}`   | Update a subscription       |
+| `DELETE` | `/api/subscriptions/{id}`   | Delete a subscription       |
+| `POST`   | `/api/subscriptions/import` | Import subscriptions (JSON) |
+| `GET`    | `/swagger`                  | Swagger UI documentation    |
 
 ## Docker
 
@@ -231,10 +231,10 @@ cd api && dotnet test
 
 ## Roadmap
 
-| Version | Focus                           | Status |
-| ------- | ------------------------------- | ------ |
-| v2.2.0  | Settings, Themes, Import/Export | ✅ Done |
-| v2.3.0  | JWT Auth & Multi-currency       | 🔄 Next |
+| Version | Focus                           | Status     |
+| ------- | ------------------------------- | ---------- |
+| v2.2.0  | Settings, Themes, Import/Export | ✅ Done    |
+| v2.3.0  | JWT Auth & Multi-currency       | 🔄 Next    |
 | v2.4.0  | Analytics & Charts              | 📋 Planned |
 | v2.5.0  | Multi-user support              | 📋 Planned |
 

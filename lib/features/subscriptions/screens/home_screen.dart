@@ -247,12 +247,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 0,
+        centerTitle: true,
         title: CenteredContent(
           maxWidth: isDesktop ? 1100 : double.infinity,
           padding: EdgeInsets.symmetric(horizontal: isDesktop ? 24 : 16),
           child: Row(
             children: [
-              const Text('Subscription Tracker'),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/icon.png',
+                    height: 42,
+                    width: 42,
+                  ),
+                  const SizedBox(width: 10),
+                  const Text('Subscription Tracker'),
+                ],
+              ),
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.settings),

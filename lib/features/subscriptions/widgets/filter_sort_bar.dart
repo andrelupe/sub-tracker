@@ -18,56 +18,58 @@ class FilterSortBar extends ConsumerWidget {
     final showInactive = ref.watch(showInactiveProvider);
     final hasActiveFilters = ref.watch(hasActiveFiltersProvider);
 
+    final children = [
+      // Category filter chip
+      _CategoryFilterChip(
+        selectedCategory: selectedCategory,
+        onSelected: (category) {
+          ref.read(categoryFilterProvider.notifier).select(category);
+        },
+      ),
+      // Sort option chip
+      _SortChip(
+        sortBy: sortBy,
+        sortAscending: sortAscending,
+        onSortChanged: (option) {
+          final currentSort = ref.read(sortByProvider);
+          if (currentSort == option) {
+            // Toggle direction if same sort option
+            ref.read(sortAscendingProvider.notifier).toggle();
+          } else {
+            // Set new sort option with its default direction
+            ref.read(sortByProvider.notifier).select(option);
+            ref
+                .read(sortAscendingProvider.notifier)
+                .set(option.defaultAscending);
+          }
+        },
+      ),
+      // Show inactive toggle chip
+      FilterChip(
+        avatar: Icon(
+          showInactive ? Icons.visibility : Icons.visibility_off,
+          size: 18,
+        ),
+        label: const Text('Show inactive'),
+        selected: showInactive,
+        showCheckmark: false,
+        onSelected: (_) {
+          ref.read(showInactiveProvider.notifier).toggle();
+        },
+      ),
+      // Clear all filters chip
+      if (hasActiveFilters)
+        ActionChip(
+          avatar: const Icon(Icons.clear_all, size: 18),
+          label: const Text('Clear'),
+          onPressed: onClearFilters,
+        ),
+    ];
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: [
-        // Category filter chip
-        _CategoryFilterChip(
-          selectedCategory: selectedCategory,
-          onSelected: (category) {
-            ref.read(categoryFilterProvider.notifier).select(category);
-          },
-        ),
-        // Sort option chip
-        _SortChip(
-          sortBy: sortBy,
-          sortAscending: sortAscending,
-          onSortChanged: (option) {
-            final currentSort = ref.read(sortByProvider);
-            if (currentSort == option) {
-              // Toggle direction if same sort option
-              ref.read(sortAscendingProvider.notifier).toggle();
-            } else {
-              // Set new sort option with its default direction
-              ref.read(sortByProvider.notifier).select(option);
-              ref
-                  .read(sortAscendingProvider.notifier)
-                  .set(option.defaultAscending);
-            }
-          },
-        ),
-        // Show inactive toggle chip
-        FilterChip(
-          avatar: Icon(
-            showInactive ? Icons.visibility : Icons.visibility_off,
-            size: 18,
-          ),
-          label: const Text('Show inactive'),
-          selected: showInactive,
-          showCheckmark: false,
-          onSelected: (_) {
-            ref.read(showInactiveProvider.notifier).toggle();
-          },
-        ),
-        // Clear all filters chip
-        if (hasActiveFilters)
-          ActionChip(
-            avatar: const Icon(Icons.clear_all, size: 18),
-            label: const Text('Clear'),
-            onPressed: onClearFilters,
-          ),
-      ],
+      children: children,
     );
   }
 }

@@ -62,7 +62,7 @@ jobs:
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
       - name: Create .env file
-        run: cp docker/.env.docker .env
+        run: cp docker/env.docker .env
 
       - name: Build and push full stack image
         uses: docker/build-push-action@v5

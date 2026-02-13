@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:subtracker/core/widgets/centered_content.dart';
 import 'package:subtracker/features/settings/widgets/about_section.dart';
 import 'package:subtracker/features/settings/widgets/export_button.dart';
 import 'package:subtracker/features/settings/widgets/import_button.dart';
@@ -15,40 +16,44 @@ class SettingsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Settings'),
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        children: [
-          const ThemeSelector(),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              'Data',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.w600,
+      body: CenteredContent(
+        maxWidth: 600,
+        padding: EdgeInsets.zero,
+        child: ListView(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          children: [
+            const ThemeSelector(),
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                'Data',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ),
+            Card(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                children: [
+                  const ExportButton(),
+                  Divider(
+                    height: 1,
+                    indent: 16,
+                    endIndent: 16,
+                    color: Theme.of(context).colorScheme.outlineVariant,
                   ),
+                  const ImportButton(),
+                ],
+              ),
             ),
-          ),
-          Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              children: [
-                const ExportButton(),
-                Divider(
-                  height: 1,
-                  indent: 16,
-                  endIndent: 16,
-                  color: Theme.of(context).colorScheme.outlineVariant,
-                ),
-                const ImportButton(),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          const AboutSection(),
-          const SizedBox(height: 32),
-        ],
+            const SizedBox(height: 24),
+            const AboutSection(),
+            const SizedBox(height: 32),
+          ],
+        ),
       ),
     );
   }

@@ -27,7 +27,8 @@ A full-stack subscription management app built with **Flutter** and **.NET 10**.
 - **Search, filter, and sort** -- find subscriptions by name, description, or category; sort by date, name, amount, or category
 - **Swipe actions** -- pause/resume or delete subscriptions with swipe gestures
 - **Active/Inactive toggle** -- pause tracking without losing data
-- **Dark mode** -- follows system theme with full Material 3 support
+- **Settings & themes** -- system/light/dark theme selector with persistent preferences
+- **Data management** -- export/import subscriptions as JSON files with validation
 - **Cross-platform** -- runs on Web, macOS, iOS, Android, Linux, and Windows
 - **Demo data** -- seeds 12 realistic subscriptions in development mode for quick testing
 
@@ -35,7 +36,7 @@ A full-stack subscription management app built with **Flutter** and **.NET 10**.
 
 | Layer        | Technology                                                     |
 | ------------ | -------------------------------------------------------------- |
-| **Frontend** | Flutter 3.x, Riverpod 2.x (code-gen), GoRouter, Material 3     |
+| **Frontend** | Flutter 3.x, Riverpod 2.x (code-gen), GoRouter, Material 3, SharedPreferences |
 | **Backend**  | .NET 10, FastEndpoints, Entity Framework Core, SQLite, Serilog |
 | **Infra**    | Docker, docker-compose                                         |
 | **Testing**  | Flutter test, xUnit, very_good_analysis                        |
@@ -62,6 +63,11 @@ sub-tracker/
 │   │   ├── services/                # Generic HTTP API client
 │   │   └── theme/                   # Material 3 theming (light + dark)
 │   ├── features/
+│   │   ├── settings/
+│   │   │   ├── providers/           # ThemeModeNotifier with SharedPreferences
+│   │   │   ├── screens/             # SettingsScreen
+│   │   │   ├── services/            # FileService for import/export
+│   │   │   └── widgets/             # ThemeSelector, ExportButton, ImportButton, AboutSection
 │   │   └── subscriptions/
 │   │       ├── models/              # Subscription, BillingCycle, Category, SortOption
 │   │       ├── providers/           # Async Riverpod state management
@@ -128,14 +134,15 @@ flutter run -d chrome
 
 ## API Endpoints
 
-| Method   | Endpoint                  | Description              |
-| -------- | ------------------------- | ------------------------ |
-| `GET`    | `/api/subscriptions`      | List all subscriptions   |
-| `GET`    | `/api/subscriptions/{id}` | Get subscription by ID   |
-| `POST`   | `/api/subscriptions`      | Create a subscription    |
-| `PUT`    | `/api/subscriptions/{id}` | Update a subscription    |
-| `DELETE` | `/api/subscriptions/{id}` | Delete a subscription    |
-| `GET`    | `/swagger`                | Swagger UI documentation |
+| Method   | Endpoint                      | Description                 |
+| -------- | ----------------------------- | --------------------------- |
+| `GET`    | `/api/subscriptions`          | List all subscriptions      |
+| `GET`    | `/api/subscriptions/{id}`     | Get subscription by ID      |
+| `POST`   | `/api/subscriptions`          | Create a subscription       |
+| `PUT`    | `/api/subscriptions/{id}`     | Update a subscription       |
+| `DELETE` | `/api/subscriptions/{id}`     | Delete a subscription       |
+| `POST`   | `/api/subscriptions/import`   | Import subscriptions (JSON) |
+| `GET`    | `/swagger`                    | Swagger UI documentation    |
 
 ## Docker
 
@@ -224,12 +231,12 @@ cd api && dotnet test
 
 ## Roadmap
 
-| Version | Focus                           |
-| ------- | ------------------------------- |
-| v2.2.0  | Settings, Themes, Import/Export |
-| v2.3.0  | JWT Auth & Multi-currency       |
-| v2.4.0  | Analytics & Charts              |
-| v2.5.0  | Multi-user support              |
+| Version | Focus                           | Status |
+| ------- | ------------------------------- | ------ |
+| v2.2.0  | Settings, Themes, Import/Export | ✅ Done |
+| v2.3.0  | JWT Auth & Multi-currency       | 🔄 Next |
+| v2.4.0  | Analytics & Charts              | 📋 Planned |
+| v2.5.0  | Multi-user support              | 📋 Planned |
 
 See [ROADMAP.md](ROADMAP.md) for details.
 

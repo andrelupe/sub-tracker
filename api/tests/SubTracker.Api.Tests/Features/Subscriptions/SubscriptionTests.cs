@@ -212,19 +212,7 @@ public class SubscriptionTests
         );
 
         // Deactivate
-        subscription.Update(
-            subscription.Name,
-            subscription.Description,
-            subscription.Amount,
-            subscription.Currency,
-            subscription.BillingCycle,
-            subscription.Category,
-            subscription.StartDate,
-            subscription.Url,
-            subscription.ReminderDaysBefore,
-            isActive: false,
-            utcNow: _utcNow
-        );
+        subscription.Deactivate(_utcNow);
 
         // Act & Assert
         Assert.False(subscription.IsDueSoon(_utcNow));

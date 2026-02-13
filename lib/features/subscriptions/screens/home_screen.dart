@@ -44,6 +44,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final searchQuery = ref.watch(searchQueryProvider);
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Subscription Tracker'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Settings',
+            onPressed: () => context.push(AppRoutes.settings),
+          ),
+        ],
+      ),
       body: asyncSubscriptions.when(
         data: (allSubscriptions) {
           if (allSubscriptions.isEmpty) {

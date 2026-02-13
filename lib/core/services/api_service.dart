@@ -80,7 +80,7 @@ class ApiService {
           )
           .timeout(_timeout);
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final dynamic decoded = json.decode(response.body);
         if (fromJson != null) {
           return fromJson(decoded as Map<String, dynamic>);

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:subtracker/core/extensions/datetime_extensions.dart';
 import 'package:subtracker/core/widgets/centered_content.dart';
+import 'package:subtracker/core/widgets/responsive_layout.dart';
 import 'package:subtracker/features/subscriptions/models/billing_cycle.dart';
 import 'package:subtracker/features/subscriptions/models/subscription_category.dart';
 import 'package:subtracker/features/subscriptions/providers/subscription_providers.dart';
@@ -197,24 +198,66 @@ class _SubscriptionFormScreenState
       }
     }
 
+    final isDesktop = ResponsiveLayout.isDesktop(context);
+
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text(widget.isEditing ? 'Edit Subscription' : 'Add Subscription'),
-        actions: [
-          if (widget.isEditing)
-            IconButton(
-              icon: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.delete_outline),
-              onPressed: _isLoading ? null : _delete,
-              tooltip: 'Delete',
-            ),
-        ],
+        automaticallyImplyLeading: !isDesktop,
+        titleSpacing: isDesktop ? 0 : null,
+        title: isDesktop
+            ? CenteredContent(
+                maxWidth: 500,
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () => context.pop(),
+                      tooltip: 'Back',
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      widget.isEditing
+                          ? 'Edit Subscription'
+                          : 'Add Subscription',
+                    ),
+                    const Spacer(),
+                    if (widget.isEditing)
+                      IconButton(
+                        icon: _isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.delete_outline),
+                        onPressed: _isLoading ? null : _delete,
+                        tooltip: 'Delete',
+                      ),
+                  ],
+                ),
+              )
+            : Text(
+                widget.isEditing ? 'Edit Subscription' : 'Add Subscription',
+              ),
+        actions: isDesktop
+            ? const [SizedBox.shrink()]
+            : [
+                if (widget.isEditing)
+                  IconButton(
+                    icon: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.delete_outline),
+                    onPressed: _isLoading ? null : _delete,
+                    tooltip: 'Delete',
+                  ),
+              ],
       ),
       body: CenteredContent(
         maxWidth: 500,

@@ -244,7 +244,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Subscription Tracker'),
+        centerTitle: true,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/icon.png',
+              height: 42,
+              width: 42,
+            ),
+            const SizedBox(width: 10),
+            const Text('Subscription Tracker'),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),

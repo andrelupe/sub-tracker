@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:subtracker/core/extensions/datetime_extensions.dart';
+import 'package:subtracker/core/widgets/centered_content.dart';
 import 'package:subtracker/features/subscriptions/models/billing_cycle.dart';
 import 'package:subtracker/features/subscriptions/models/subscription_category.dart';
 import 'package:subtracker/features/subscriptions/providers/subscription_providers.dart';
@@ -215,167 +216,172 @@ class _SubscriptionFormScreenState
             ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Name',
-                hintText: 'e.g., Netflix, Spotify',
+      body: CenteredContent(
+        maxWidth: 500,
+        padding: EdgeInsets.zero,
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Name',
+                  hintText: 'e.g., Netflix, Spotify',
+                ),
+                textCapitalization: TextCapitalization.words,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter a name';
+                  }
+                  return null;
+                },
               ),
-              textCapitalization: TextCapitalization.words,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Please enter a name';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: TextFormField(
-                    controller: _amountController,
-                    decoration: const InputDecoration(
-                      labelText: 'Amount',
-                      hintText: '9.99',
-                    ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                        RegExp(r'^\d+[,.]?\d{0,2}'),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: TextFormField(
+                      controller: _amountController,
+                      decoration: const InputDecoration(
+                        labelText: 'Amount',
+                        hintText: '9.99',
                       ),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d+[,.]?\d{0,2}'),
+                        ),
+                      ],
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Required';
+                        }
+                        final amount =
+                            double.tryParse(value.replaceAll(',', '.'));
+                        if (amount == null || amount <= 0) {
+                          return 'Invalid';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _currency,
+                      decoration: const InputDecoration(
+                        labelText: 'Currency',
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'EUR', child: Text('EUR')),
+                        DropdownMenuItem(value: 'USD', child: Text('USD')),
+                        DropdownMenuItem(value: 'GBP', child: Text('GBP')),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) setState(() => _currency = value);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<BillingCycle>(
+                value: _billingCycle,
+                decoration: const InputDecoration(
+                  labelText: 'Billing Cycle',
+                ),
+                items: BillingCycle.values.map((cycle) {
+                  return DropdownMenuItem(
+                      value: cycle, child: Text(cycle.label));
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) setState(() => _billingCycle = value);
+                },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<SubscriptionCategory>(
+                value: _category,
+                decoration: const InputDecoration(
+                  labelText: 'Category',
+                ),
+                items: SubscriptionCategory.values.map((cat) {
+                  return DropdownMenuItem(
+                    value: cat,
+                    child: Row(
+                      children: [
+                        Icon(cat.icon, size: 20, color: cat.color),
+                        const SizedBox(width: 8),
+                        Text(cat.label),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) setState(() => _category = value);
+                },
+              ),
+              const SizedBox(height: 16),
+              InkWell(
+                onTap: _selectDate,
+                borderRadius: BorderRadius.circular(12),
+                child: InputDecorator(
+                  decoration: const InputDecoration(
+                    labelText: 'Start Date',
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(_startDate.formatted),
+                      const Icon(Icons.calendar_today_outlined, size: 20),
                     ],
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Required';
-                      }
-                      final amount =
-                          double.tryParse(value.replaceAll(',', '.'));
-                      if (amount == null || amount <= 0) {
-                        return 'Invalid';
-                      }
-                      return null;
-                    },
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _currency,
-                    decoration: const InputDecoration(
-                      labelText: 'Currency',
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: 'EUR', child: Text('EUR')),
-                      DropdownMenuItem(value: 'USD', child: Text('USD')),
-                      DropdownMenuItem(value: 'GBP', child: Text('GBP')),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) setState(() => _currency = value);
-                    },
-                  ),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(
+                  labelText: 'Description (optional)',
+                  hintText: 'Add notes about this subscription',
+                ),
+                maxLines: 2,
+              ),
+              if (widget.isEditing) ...[
+                const SizedBox(height: 16),
+                SwitchListTile(
+                  title: const Text('Active'),
+                  subtitle: const Text('Pause to stop tracking'),
+                  value: _isActive,
+                  onChanged: (value) => setState(() => _isActive = value),
+                  contentPadding: EdgeInsets.zero,
                 ),
               ],
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<BillingCycle>(
-              value: _billingCycle,
-              decoration: const InputDecoration(
-                labelText: 'Billing Cycle',
-              ),
-              items: BillingCycle.values.map((cycle) {
-                return DropdownMenuItem(value: cycle, child: Text(cycle.label));
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) setState(() => _billingCycle = value);
-              },
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<SubscriptionCategory>(
-              value: _category,
-              decoration: const InputDecoration(
-                labelText: 'Category',
-              ),
-              items: SubscriptionCategory.values.map((cat) {
-                return DropdownMenuItem(
-                  value: cat,
-                  child: Row(
-                    children: [
-                      Icon(cat.icon, size: 20, color: cat.color),
-                      const SizedBox(width: 8),
-                      Text(cat.label),
-                    ],
-                  ),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) setState(() => _category = value);
-              },
-            ),
-            const SizedBox(height: 16),
-            InkWell(
-              onTap: _selectDate,
-              borderRadius: BorderRadius.circular(12),
-              child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'Start Date',
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(_startDate.formatted),
-                    const Icon(Icons.calendar_today_outlined, size: 20),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description (optional)',
-                hintText: 'Add notes about this subscription',
-              ),
-              maxLines: 2,
-            ),
-            if (widget.isEditing) ...[
-              const SizedBox(height: 16),
-              SwitchListTile(
-                title: const Text('Active'),
-                subtitle: const Text('Pause to stop tracking'),
-                value: _isActive,
-                onChanged: (value) => setState(() => _isActive = value),
-                contentPadding: EdgeInsets.zero,
+              const SizedBox(height: 32),
+              FilledButton(
+                onPressed: _isLoading ? null : _save,
+                child: _isLoading
+                    ? const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          SizedBox(width: 8),
+                          Text('Saving...'),
+                        ],
+                      )
+                    : Text(
+                        widget.isEditing ? 'Save Changes' : 'Add Subscription'),
               ),
             ],
-            const SizedBox(height: 32),
-            FilledButton(
-              onPressed: _isLoading ? null : _save,
-              child: _isLoading
-                  ? const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                        SizedBox(width: 8),
-                        Text('Saving...'),
-                      ],
-                    )
-                  : Text(
-                      widget.isEditing ? 'Save Changes' : 'Add Subscription'),
-            ),
-          ],
+          ),
         ),
       ),
     );

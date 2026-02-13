@@ -5,7 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:subtracker/core/constants/app_constants.dart';
 import 'package:subtracker/core/router/app_router.dart';
+import 'package:subtracker/core/widgets/centered_content.dart';
+import 'package:subtracker/core/widgets/responsive_layout.dart';
 import 'package:subtracker/features/subscriptions/models/sort_option.dart';
+import 'package:subtracker/features/subscriptions/models/subscription.dart';
 import 'package:subtracker/features/subscriptions/providers/subscription_providers.dart';
 import 'package:subtracker/features/subscriptions/widgets/filter_sort_bar.dart';
 import 'package:subtracker/features/subscriptions/widgets/monthly_summary_card.dart';
@@ -38,6 +41,202 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
+  Widget _buildSearchBar(String searchQuery) {
+    return SearchBar(
+      controller: _searchController,
+      hintText: 'Search subscriptions...',
+      leading: const Padding(
+        padding: EdgeInsets.only(left: 8),
+        child: Icon(Icons.search),
+      ),
+      trailing: searchQuery.isNotEmpty
+          ? [
+              IconButton(
+                icon: const Icon(Icons.clear),
+                onPressed: () {
+                  _searchController.clear();
+                  ref.read(searchQueryProvider.notifier).clear();
+                },
+              ),
+            ]
+          : null,
+      onChanged: (value) {
+        ref.read(searchQueryProvider.notifier).update(value);
+      },
+      padding: const WidgetStatePropertyAll(
+        EdgeInsets.symmetric(horizontal: 8),
+      ),
+      elevation: const WidgetStatePropertyAll(0),
+      backgroundColor: WidgetStatePropertyAll(
+        Theme.of(context).colorScheme.surfaceContainerHighest,
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(
+    List<Subscription> filteredSubscriptions,
+    bool hasActiveFilters,
+    bool showInactive,
+  ) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          hasActiveFilters
+              ? 'Filtered Results'
+              : showInactive
+                  ? 'Inactive Subscriptions'
+                  : 'Active Subscriptions',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        Text(
+          '${filteredSubscriptions.length}',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSubscriptionList(
+    List<Subscription> filteredSubscriptions,
+    bool hasActiveFilters,
+    String searchQuery,
+  ) {
+    return Column(
+      children: [
+        _AddSubscriptionCard(
+          onTap: () => context.push(AppRoutes.addSubscription),
+        ),
+        const SizedBox(height: 8),
+        if (filteredSubscriptions.isEmpty && hasActiveFilters)
+          _NoResultsState(query: searchQuery)
+        else
+          ...filteredSubscriptions.map(
+            (sub) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: SubscriptionListTile(
+                subscription: sub,
+                onTap: () => context.push(
+                  AppRoutes.editSubscriptionPath(sub.id),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout({
+    required String searchQuery,
+    required List<Subscription> filteredSubscriptions,
+    required bool hasActiveFilters,
+    required bool showInactive,
+  }) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(subscriptionsNotifierProvider);
+      },
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const MonthlySummaryCard(),
+          const SizedBox(height: 16),
+          _buildSearchBar(searchQuery),
+          const SizedBox(height: 12),
+          FilterSortBar(
+            onClearFilters: () => _clearAllFilters(ref),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader(
+            filteredSubscriptions,
+            hasActiveFilters,
+            showInactive,
+          ),
+          const SizedBox(height: 12),
+          _buildSubscriptionList(
+            filteredSubscriptions,
+            hasActiveFilters,
+            searchQuery,
+          ),
+          const SizedBox(height: 32),
+          const _VersionFooter(),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopLayout({
+    required String searchQuery,
+    required List<Subscription> filteredSubscriptions,
+    required bool hasActiveFilters,
+    required bool showInactive,
+  }) {
+    return CenteredContent(
+      maxWidth: 1100,
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Sidebar
+                  SizedBox(
+                    width: 320,
+                    child: ListView(
+                      children: [
+                        const MonthlySummaryCard(),
+                        const SizedBox(height: 16),
+                        _buildSearchBar(searchQuery),
+                        const SizedBox(height: 16),
+                        FilterSortBar(
+                          onClearFilters: () => _clearAllFilters(ref),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 24),
+                  // Main content
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: () async {
+                        ref.invalidate(subscriptionsNotifierProvider);
+                      },
+                      child: ListView(
+                        children: [
+                          _buildSectionHeader(
+                            filteredSubscriptions,
+                            hasActiveFilters,
+                            showInactive,
+                          ),
+                          const SizedBox(height: 12),
+                          _buildSubscriptionList(
+                            filteredSubscriptions,
+                            hasActiveFilters,
+                            searchQuery,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: _VersionFooter(),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final asyncSubscriptions = ref.watch(subscriptionsNotifierProvider);
@@ -67,91 +266,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           final hasActiveFilters = ref.watch(hasActiveFiltersProvider);
           final showInactive = ref.watch(showInactiveProvider);
 
-          return RefreshIndicator(
-            onRefresh: () async {
-              ref.invalidate(subscriptionsNotifierProvider);
-            },
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                const MonthlySummaryCard(),
-                const SizedBox(height: 16),
-                SearchBar(
-                  controller: _searchController,
-                  hintText: 'Search subscriptions...',
-                  leading: const Padding(
-                    padding: EdgeInsets.only(left: 8),
-                    child: Icon(Icons.search),
-                  ),
-                  trailing: searchQuery.isNotEmpty
-                      ? [
-                          IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                              ref.read(searchQueryProvider.notifier).clear();
-                            },
-                          ),
-                        ]
-                      : null,
-                  onChanged: (value) {
-                    ref.read(searchQueryProvider.notifier).update(value);
-                  },
-                  padding: const WidgetStatePropertyAll(
-                    EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                  elevation: const WidgetStatePropertyAll(0),
-                  backgroundColor: WidgetStatePropertyAll(
-                    Theme.of(context).colorScheme.surfaceContainerHighest,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                FilterSortBar(
-                  onClearFilters: () => _clearAllFilters(ref),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      hasActiveFilters
-                          ? 'Filtered Results'
-                          : showInactive
-                              ? 'Inactive Subscriptions'
-                              : 'Active Subscriptions',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    Text(
-                      '${filteredSubscriptions.length}',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                _AddSubscriptionCard(
-                  onTap: () => context.push(AppRoutes.addSubscription),
-                ),
-                const SizedBox(height: 8),
-                if (filteredSubscriptions.isEmpty && hasActiveFilters)
-                  _NoResultsState(query: searchQuery)
-                else
-                  ...filteredSubscriptions.map(
-                    (sub) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: SubscriptionListTile(
-                        subscription: sub,
-                        onTap: () => context.push(
-                          AppRoutes.editSubscriptionPath(sub.id),
-                        ),
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 32),
-                const _VersionFooter(),
-                const SizedBox(height: 16),
-              ],
+          return ResponsiveLayout(
+            mobile: _buildMobileLayout(
+              searchQuery: searchQuery,
+              filteredSubscriptions: filteredSubscriptions,
+              hasActiveFilters: hasActiveFilters,
+              showInactive: showInactive,
+            ),
+            tablet: CenteredContent(
+              maxWidth: 600,
+              padding: EdgeInsets.zero,
+              child: _buildMobileLayout(
+                searchQuery: searchQuery,
+                filteredSubscriptions: filteredSubscriptions,
+                hasActiveFilters: hasActiveFilters,
+                showInactive: showInactive,
+              ),
+            ),
+            desktop: _buildDesktopLayout(
+              searchQuery: searchQuery,
+              filteredSubscriptions: filteredSubscriptions,
+              hasActiveFilters: hasActiveFilters,
+              showInactive: showInactive,
             ),
           );
         },

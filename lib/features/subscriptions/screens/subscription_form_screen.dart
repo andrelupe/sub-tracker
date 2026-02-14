@@ -228,7 +228,7 @@ class _SubscriptionFormScreenState
         titleSpacing: isDesktop ? 0 : null,
         title: isDesktop
             ? CenteredContent(
-                maxWidth: 500,
+                maxWidth: 1100,
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Row(
                   children: [

@@ -22,7 +22,7 @@ class SettingsScreen extends ConsumerWidget {
         titleSpacing: isDesktop ? 0 : null,
         title: isDesktop
             ? CenteredContent(
-                maxWidth: 600,
+                maxWidth: 1100,
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Row(
                   children: [
@@ -51,7 +51,7 @@ class SettingsScreen extends ConsumerWidget {
               child: Text(
                 'Data',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w600,
                     ),
               ),

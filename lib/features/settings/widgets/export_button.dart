@@ -67,7 +67,7 @@ class _ExportButtonState extends ConsumerState<ExportButton> {
               height: 24,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
-          : const Icon(Icons.chevron_right),
+          : const Icon(Icons.download_outlined),
       onTap: _isLoading ? null : _export,
     );
   }

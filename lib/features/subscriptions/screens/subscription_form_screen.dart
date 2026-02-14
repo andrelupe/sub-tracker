@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:subtracker/core/extensions/datetime_extensions.dart';
 import 'package:subtracker/core/widgets/centered_content.dart';
+import 'package:subtracker/core/widgets/confirm_delete_dialog.dart';
 import 'package:subtracker/core/widgets/responsive_layout.dart';
 import 'package:subtracker/features/subscriptions/models/billing_cycle.dart';
 import 'package:subtracker/features/subscriptions/models/subscription_category.dart';
@@ -140,26 +141,13 @@ class _SubscriptionFormScreenState
   }
 
   Future<void> _delete() async {
-    final confirmed = await showDialog<bool>(
+    final existing = ref.read(subscriptionByIdProvider(widget.subscriptionId!));
+    if (existing == null) return;
+
+    final confirmed = await ConfirmDeleteDialog.show(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Subscription'),
-        content:
-            const Text('Are you sure you want to delete this subscription?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      title: 'Delete Subscription',
+      itemName: existing.name,
     );
 
     if (confirmed == true && mounted) {
@@ -171,6 +159,29 @@ class _SubscriptionFormScreenState
             .delete(widget.subscriptionId!);
 
         if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('"${existing.name}" deleted'),
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 5),
+              action: SnackBarAction(
+                label: 'Undo',
+                onPressed: () {
+                  ref.read(subscriptionsNotifierProvider.notifier).create(
+                        name: existing.name,
+                        description: existing.description,
+                        amount: existing.amount,
+                        currency: existing.currency,
+                        billingCycle: existing.billingCycle,
+                        category: existing.category,
+                        startDate: existing.startDate,
+                        url: existing.url,
+                        reminderDaysBefore: existing.reminderDaysBefore,
+                      );
+                },
+              ),
+            ),
+          );
           context.pop();
         }
       } catch (error) {
@@ -403,7 +414,9 @@ class _SubscriptionFormScreenState
                   labelText: 'Description (optional)',
                   hintText: 'Add notes about this subscription',
                 ),
-                maxLines: 2,
+                minLines: 2,
+                maxLines: 5,
+                textInputAction: TextInputAction.done,
               ),
               if (widget.isEditing) ...[
                 const SizedBox(height: 16),

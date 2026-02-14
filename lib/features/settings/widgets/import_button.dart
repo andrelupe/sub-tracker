@@ -137,7 +137,7 @@ class _ImportButtonState extends ConsumerState<ImportButton> {
               height: 24,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
-          : const Icon(Icons.chevron_right),
+          : const Icon(Icons.upload_outlined),
       onTap: _isLoading ? null : _import,
     );
   }

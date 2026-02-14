@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:subtracker/core/extensions/datetime_extensions.dart';
+import 'package:subtracker/core/widgets/confirm_delete_dialog.dart';
 import 'package:subtracker/core/widgets/responsive_layout.dart';
 import 'package:subtracker/features/subscriptions/models/subscription.dart';
 import 'package:subtracker/features/subscriptions/providers/subscription_providers.dart';
@@ -137,16 +138,20 @@ class _SubscriptionListTileState extends ConsumerState<SubscriptionListTile> {
   Widget _buildCategoryIcon() {
     final category = widget.subscription.category;
 
-    return Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(
-        color: category.color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Icon(
-        category.icon,
-        color: category.color,
+    return Tooltip(
+      message: category.label,
+      preferBelow: false,
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: category.color.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(
+          category.icon,
+          color: category.color,
+        ),
       ),
     );
   }
@@ -290,35 +295,42 @@ class _SubscriptionListTileState extends ConsumerState<SubscriptionListTile> {
   }
 
   Future<void> _confirmDelete() async {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    final confirmed = await showDialog<bool>(
+    final confirmed = await ConfirmDeleteDialog.show(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Subscription'),
-        content: Text(
-          'Are you sure you want to delete "${widget.subscription.name}"?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: colorScheme.error,
-            ),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      title: 'Delete Subscription',
+      itemName: widget.subscription.name,
     );
 
     if (confirmed == true && mounted) {
-      ref
-          .read(subscriptionsNotifierProvider.notifier)
-          .delete(widget.subscription.id);
+      final deleted = widget.subscription;
+
+      await ref.read(subscriptionsNotifierProvider.notifier).delete(deleted.id);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('"${deleted.name}" deleted'),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Undo',
+              onPressed: () {
+                ref.read(subscriptionsNotifierProvider.notifier).create(
+                      name: deleted.name,
+                      description: deleted.description,
+                      amount: deleted.amount,
+                      currency: deleted.currency,
+                      billingCycle: deleted.billingCycle,
+                      category: deleted.category,
+                      startDate: deleted.startDate,
+                      url: deleted.url,
+                      reminderDaysBefore: deleted.reminderDaysBefore,
+                    );
+              },
+            ),
+          ),
+        );
+      }
     }
   }
 

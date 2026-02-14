@@ -207,25 +207,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   const SizedBox(width: 24),
                   // Main content
                   Expanded(
-                    child: RefreshIndicator(
-                      onRefresh: () async {
-                        ref.invalidate(subscriptionsNotifierProvider);
-                      },
-                      child: ListView(
-                        children: [
-                          _buildSectionHeader(
-                            filteredSubscriptions,
-                            hasActiveFilters,
-                            showInactive,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionHeader(
+                          filteredSubscriptions,
+                          hasActiveFilters,
+                          showInactive,
+                        ),
+                        const SizedBox(height: 12),
+                        Expanded(
+                          child: RefreshIndicator(
+                            onRefresh: () async {
+                              ref.invalidate(subscriptionsNotifierProvider);
+                            },
+                            child: ListView(
+                              children: [
+                                _buildSubscriptionList(
+                                  filteredSubscriptions,
+                                  hasActiveFilters,
+                                  searchQuery,
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 12),
-                          _buildSubscriptionList(
-                            filteredSubscriptions,
-                            hasActiveFilters,
-                            searchQuery,
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -262,7 +269,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     width: 32,
                   ),
                   const SizedBox(width: 10),
-                  const Text('Subscription Tracker'),
+                  const Text('SubTracker'),
                 ],
               ),
               const Spacer(),

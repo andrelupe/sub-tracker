@@ -18,7 +18,7 @@ class ThemeSelector extends ConsumerWidget {
           child: Text(
             'Appearance',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
                 ),
           ),

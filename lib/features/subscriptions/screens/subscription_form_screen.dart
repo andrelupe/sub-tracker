@@ -110,6 +110,17 @@ class _SubscriptionFormScreenState
       }
 
       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              widget.isEditing
+                  ? '"${_nameController.text}" updated'
+                  : '"${_nameController.text}" added',
+            ),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
+        );
         context.pop();
       }
     } catch (error) {

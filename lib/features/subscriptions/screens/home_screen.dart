@@ -1,9 +1,9 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:subtracker/core/constants/app_constants.dart';
 import 'package:subtracker/core/router/app_router.dart';
 import 'package:subtracker/core/widgets/centered_content.dart';
 import 'package:subtracker/core/widgets/responsive_layout.dart';
@@ -23,9 +23,11 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _searchController = TextEditingController();
+  Timer? _debounceTimer;
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -61,7 +63,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ]
           : null,
       onChanged: (value) {
-        ref.read(searchQueryProvider.notifier).update(value);
+        _debounceTimer?.cancel();
+        _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+          ref.read(searchQueryProvider.notifier).update(value);
+        });
       },
       padding: const WidgetStatePropertyAll(
         EdgeInsets.symmetric(horizontal: 8),
@@ -161,8 +166,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             searchQuery,
           ),
           const SizedBox(height: 32),
-          const _VersionFooter(),
-          const SizedBox(height: 16),
         ],
       ),
     );
@@ -228,10 +231,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: _VersionFooter(),
-          ),
         ],
       ),
     );
@@ -258,14 +257,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 children: [
                   Image.asset(
                     'assets/icon.png',
-                    height: 42,
-                    width: 42,
+                    height: 32,
+                    width: 32,
                   ),
                   const SizedBox(width: 10),
                   const Text('Subscription Tracker'),
                 ],
               ),
               const Spacer(),
+              if (ResponsiveLayout.isDesktop(context))
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  tooltip: 'Refresh',
+                  onPressed: () =>
+                      ref.invalidate(subscriptionsNotifierProvider),
+                ),
               IconButton(
                 icon: const Icon(Icons.settings),
                 tooltip: 'Settings',
@@ -547,20 +553,4 @@ class _DashedBorderPainter extends CustomPainter {
   @override
   bool shouldRepaint(_DashedBorderPainter oldDelegate) =>
       color != oldDelegate.color || borderRadius != oldDelegate.borderRadius;
-}
-
-class _VersionFooter extends StatelessWidget {
-  const _VersionFooter();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'v${AppConstants.version}',
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.outline,
-            ),
-      ),
-    );
-  }
 }

@@ -10,13 +10,28 @@ A full-stack subscription management app built with **Flutter** and **.NET 10**.
 
 ## Screenshots
 
-<p align="center">
-  <img src="screenshots/main-page.png" alt="Dashboard - subscription list with spending overview" width="300" />
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="screenshots/main-page-inactive-subs.png" alt="Dashboard - subscription list with inactive subscriptions" width="300" />
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="screenshots/add-subscription.png" alt="Add subscription form" width="300" />
-</p>
+<table align="center">
+  <tr>
+    <td colspan="3" align="center">
+      <img src="screenshots/main-page-web-dark.png" alt="Dashboard — desktop dark mode" width="700" />
+      <br /><sub><b>Dashboard — Desktop (Dark Mode)</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="screenshots/main-page-mobile-dark.png" alt="Dashboard — mobile dark mode" width="250" height="549" />
+      <br /><sub><b>Dashboard — Mobile</b></sub>
+    </td>
+    <td align="center">
+      <img src="screenshots/add-mobile-dark.png" alt="Add subscription — mobile dark mode" width="250" height="549" />
+      <br /><sub><b>Add Subscription</b></sub>
+    </td>
+    <td align="center">
+      <img src="screenshots/settings-mobile-light.png" alt="Settings — mobile light mode" width="250" height="549" />
+      <br /><sub><b>Settings — Light Mode</b></sub>
+    </td>
+  </tr>
+</table>
 
 ## Features
 

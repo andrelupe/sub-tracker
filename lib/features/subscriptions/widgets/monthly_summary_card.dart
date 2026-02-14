@@ -27,7 +27,8 @@ class MonthlySummaryCard extends ConsumerWidget {
                 Text(
                   'Monthly Spending',
                   style: textTheme.titleSmall?.copyWith(
-                    color: colorScheme.onPrimaryContainer.withOpacity(0.7),
+                    color:
+                        colorScheme.onPrimaryContainer.withValues(alpha: 0.85),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -51,7 +52,8 @@ class MonthlySummaryCard extends ConsumerWidget {
                     Container(
                       width: 1,
                       height: 40,
-                      color: colorScheme.onPrimaryContainer.withOpacity(0.2),
+                      color:
+                          colorScheme.onPrimaryContainer.withValues(alpha: 0.3),
                     ),
                     Expanded(
                       child: _SummaryItem(
@@ -72,7 +74,7 @@ class MonthlySummaryCard extends ConsumerWidget {
               Text(
                 'Monthly Spending',
                 style: textTheme.titleSmall?.copyWith(
-                  color: colorScheme.onPrimaryContainer.withOpacity(0.7),
+                  color: colorScheme.onPrimaryContainer.withValues(alpha: 0.85),
                 ),
               ),
               const SizedBox(height: 4),
@@ -104,7 +106,7 @@ class MonthlySummaryCard extends ConsumerWidget {
               Text(
                 'Monthly Spending',
                 style: textTheme.titleSmall?.copyWith(
-                  color: colorScheme.onPrimaryContainer.withOpacity(0.7),
+                  color: colorScheme.onPrimaryContainer.withValues(alpha: 0.85),
                 ),
               ),
               const SizedBox(height: 4),
@@ -143,7 +145,7 @@ class _SummaryItem extends StatelessWidget {
 
     final textColor = highlight
         ? colorScheme.error
-        : colorScheme.onPrimaryContainer.withOpacity(0.8);
+        : colorScheme.onPrimaryContainer.withValues(alpha: 0.85);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -157,7 +159,7 @@ class _SummaryItem extends StatelessWidget {
               Text(
                 label,
                 style: textTheme.labelSmall?.copyWith(
-                  color: colorScheme.onPrimaryContainer.withOpacity(0.6),
+                  color: colorScheme.onPrimaryContainer.withValues(alpha: 0.85),
                 ),
               ),
               Text(

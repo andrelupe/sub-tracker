@@ -56,11 +56,15 @@ class MonthlySummaryCard extends ConsumerWidget {
                           colorScheme.onPrimaryContainer.withValues(alpha: 0.3),
                     ),
                     Expanded(
-                      child: _SummaryItem(
-                        label: 'Due Soon',
-                        value: '${dueSoon.length}',
-                        icon: Icons.notifications_outlined,
-                        highlight: dueSoon.isNotEmpty,
+                      child: Tooltip(
+                        message: 'Subscriptions due in the next 2 days',
+                        preferBelow: false,
+                        child: _SummaryItem(
+                          label: 'Due Soon',
+                          value: '${dueSoon.length}',
+                          icon: Icons.notifications_outlined,
+                          highlight: dueSoon.isNotEmpty,
+                        ),
                       ),
                     ),
                   ],

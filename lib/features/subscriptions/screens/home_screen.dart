@@ -47,6 +47,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return SearchBar(
       controller: _searchController,
       hintText: 'Search subscriptions...',
+      textInputAction: TextInputAction.search,
       leading: const Padding(
         padding: EdgeInsets.only(left: 8),
         child: Icon(Icons.search),

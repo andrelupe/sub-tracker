@@ -40,8 +40,11 @@ A full-stack subscription management app built with **Flutter** and **.NET 10**.
 - **Due soon alerts** -- visual indicators for subscriptions due within a configurable window (0-30 days)
 - **Push notifications** -- automatic Pushover alerts for upcoming bills via a background job
 - **Search, filter, and sort** -- find subscriptions by name, description, or category; sort by date, name, amount, or category
-- **Swipe actions** -- pause/resume or delete subscriptions with swipe gestures
-- **Active/Inactive toggle** -- pause tracking without losing data
+- **Swipe actions** -- pause/resume or delete subscriptions with swipe gestures (mobile)
+- **Desktop hover actions** -- pause/resume or delete via inline buttons on hover
+- **Undo delete** -- 5-second SnackBar with undo action after deleting a subscription
+- **Active/Inactive toggle** -- pause tracking without losing data, with visual "Paused" badge
+- **Responsive desktop layout** -- two-column layout with sidebar, sticky headers, and refresh button
 - **Settings & themes** -- system/light/dark theme selector with persistent preferences
 - **Data management** -- export/import subscriptions as JSON files with validation
 - **Cross-platform** -- runs on Web, macOS, iOS, Android, Linux, and Windows
@@ -246,12 +249,14 @@ cd api && dotnet test
 
 ## Roadmap
 
-| Version | Focus                           | Status     |
-| ------- | ------------------------------- | ---------- |
-| v2.2.0  | Settings, Themes, Import/Export | ✅ Done    |
-| v2.3.0  | JWT Auth & Multi-currency       | 🔄 Next    |
-| v2.4.0  | Analytics & Charts              | 📋 Planned |
-| v2.5.0  | Multi-user support              | 📋 Planned |
+| Version | Focus                           | Status  |
+| ------- | ------------------------------- | ------- |
+| v2.2.0  | Settings, Themes, Import/Export | Done    |
+| v2.2.1  | Responsive Desktop Layout       | Done    |
+| v2.2.2  | UI Polish & Desktop UX          | Next    |
+| v2.3.0  | JWT Auth & Multi-currency       | Planned |
+| v2.4.0  | Analytics & Charts              | Planned |
+| v2.5.0  | Multi-user support              | Planned |
 
 See [ROADMAP.md](ROADMAP.md) for details.
 

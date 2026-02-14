@@ -242,16 +242,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final asyncSubscriptions = ref.watch(subscriptionsNotifierProvider);
     final searchQuery = ref.watch(searchQueryProvider);
 
+    final isDesktop = ResponsiveLayout.isDesktop(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Subscription Tracker'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            tooltip: 'Settings',
-            onPressed: () => context.push(AppRoutes.settings),
+        titleSpacing: 0,
+        title: CenteredContent(
+          maxWidth: isDesktop ? 1100 : double.infinity,
+          padding: EdgeInsets.symmetric(horizontal: isDesktop ? 24 : 16),
+          child: Row(
+            children: [
+              const Text('Subscription Tracker'),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.settings),
+                tooltip: 'Settings',
+                onPressed: () => context.push(AppRoutes.settings),
+              ),
+            ],
           ),
-        ],
+        ),
+        actions: const [SizedBox.shrink()],
       ),
       body: asyncSubscriptions.when(
         data: (allSubscriptions) {

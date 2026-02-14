@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:subtracker/core/widgets/centered_content.dart';
+import 'package:subtracker/core/widgets/responsive_layout.dart';
 import 'package:subtracker/features/settings/widgets/about_section.dart';
 import 'package:subtracker/features/settings/widgets/export_button.dart';
 import 'package:subtracker/features/settings/widgets/import_button.dart';
@@ -12,9 +14,29 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isDesktop = ResponsiveLayout.isDesktop(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        automaticallyImplyLeading: !isDesktop,
+        titleSpacing: isDesktop ? 0 : null,
+        title: isDesktop
+            ? CenteredContent(
+                maxWidth: 600,
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () => context.pop(),
+                      tooltip: 'Back',
+                    ),
+                    const SizedBox(width: 8),
+                    const Text('Settings'),
+                  ],
+                ),
+              )
+            : const Text('Settings'),
       ),
       body: CenteredContent(
         maxWidth: 600,

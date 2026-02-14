@@ -17,6 +17,13 @@ abstract class AppTheme {
       centerTitle: true,
       elevation: 0,
     ),
+    cardTheme: CardThemeData(
+      clipBehavior: Clip.antiAlias,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    ),
     inputDecorationTheme: InputDecorationTheme(
       filled: false,
       border: OutlineInputBorder(
@@ -28,8 +35,10 @@ abstract class AppTheme {
         vertical: 16,
       ),
     ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: _primaryColor,
+        foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(
           horizontal: 24,
           vertical: 14,
@@ -54,6 +63,13 @@ abstract class AppTheme {
       centerTitle: true,
       elevation: 0,
     ),
+    cardTheme: CardThemeData(
+      clipBehavior: Clip.antiAlias,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    ),
     inputDecorationTheme: InputDecorationTheme(
       filled: false,
       border: OutlineInputBorder(
@@ -65,8 +81,10 @@ abstract class AppTheme {
         vertical: 16,
       ),
     ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: _primaryColor,
+        foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(
           horizontal: 24,
           vertical: 14,

@@ -1,7 +1,7 @@
 name: subtracker
 description: A subscription tracking app built with Flutter.
 publish_to: 'none'
-version: 2.2.1+6
+version: 2.2.2+7
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -49,3 +49,4 @@ flutter:
   uses-material-design: true
   assets:
     - .env
+    - assets/icon.png

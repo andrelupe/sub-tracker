@@ -12,8 +12,13 @@ public sealed class DeleteEndpoint : Endpoint<DeleteEndpoint.Request>
     }
 
     private readonly AppDbContext _db;
+    private readonly ILogger<DeleteEndpoint> _logger;
 
-    public DeleteEndpoint(AppDbContext db) => _db = db;
+    public DeleteEndpoint(AppDbContext db, ILogger<DeleteEndpoint> logger)
+    {
+        _db = db;
+        _logger = logger;
+    }
 
     public override void Configure()
     {
@@ -34,6 +39,11 @@ public sealed class DeleteEndpoint : Endpoint<DeleteEndpoint.Request>
 
         _db.Subscriptions.Remove(subscription);
         await _db.SaveChangesAsync(ct);
+        
+        _logger.LogInformation(
+            "Subscription deleted: {SubscriptionId}",
+            req.Id);
+        
         await Send.NoContentAsync(ct);
     }
 }

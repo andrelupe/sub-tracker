@@ -21,6 +21,14 @@ public sealed class PushoverNotificationService : INotificationService
 
     public async Task SendAsync(string title, string message, CancellationToken ct = default)
     {
+        if (string.IsNullOrWhiteSpace(_options.ApiToken) || string.IsNullOrWhiteSpace(_options.UserKey))
+        {
+            _logger.LogWarning("Pushover not configured - skipping notification: {Title}", title);
+            return;
+        }
+
+        _logger.LogDebug("Sending Pushover notification: {Title}", title);
+
         try
         {
             var content = new FormUrlEncodedContent(new Dictionary<string, string>
@@ -33,13 +41,26 @@ public sealed class PushoverNotificationService : INotificationService
             });
 
             var response = await _httpClient.PostAsync(string.Empty, content, ct);
-            response.EnsureSuccessStatusCode();
 
-            _logger.LogInformation("Pushover notification sent: {Title}", title);
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Pushover notification sent successfully: {Title}", title);
+            }
+            else
+            {
+                var responseBody = await response.Content.ReadAsStringAsync(ct);
+                _logger.LogError(
+                    "Pushover notification failed with status {StatusCode}: {ResponseBody}",
+                    response.StatusCode,
+                    responseBody);
+                
+                throw new HttpRequestException($"Pushover request failed with status {response.StatusCode}");
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send Pushover notification");
+            _logger.LogError(ex, "Failed to send Pushover notification: {Title}", title);
+            throw;
         }
     }
 }

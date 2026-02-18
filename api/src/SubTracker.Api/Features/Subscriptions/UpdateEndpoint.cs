@@ -51,11 +51,13 @@ public sealed class UpdateEndpoint : Endpoint<UpdateEndpoint.Request>
 
     private readonly AppDbContext _db;
     private readonly IDateTimeProvider _dateTime;
+    private readonly ILogger<UpdateEndpoint> _logger;
 
-    public UpdateEndpoint(AppDbContext db, IDateTimeProvider dateTime)
+    public UpdateEndpoint(AppDbContext db, IDateTimeProvider dateTime, ILogger<UpdateEndpoint> logger)
     {
         _db = db;
         _dateTime = dateTime;
+        _logger = logger;
     }
 
     public override void Configure()
@@ -90,6 +92,12 @@ public sealed class UpdateEndpoint : Endpoint<UpdateEndpoint.Request>
         );
 
         await _db.SaveChangesAsync(ct);
+        
+        _logger.LogInformation(
+            "Subscription updated: {SubscriptionId} ({SubscriptionName})",
+            subscription.Id,
+            subscription.Name);
+        
         await Send.NoContentAsync(ct);
     }
 }

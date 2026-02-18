@@ -51,11 +51,13 @@ public sealed class CreateEndpoint : Endpoint<CreateEndpoint.Request, CreateEndp
 
     private readonly AppDbContext _db;
     private readonly IDateTimeProvider _dateTime;
+    private readonly ILogger<CreateEndpoint> _logger;
 
-    public CreateEndpoint(AppDbContext db, IDateTimeProvider dateTime)
+    public CreateEndpoint(AppDbContext db, IDateTimeProvider dateTime, ILogger<CreateEndpoint> logger)
     {
         _db = db;
         _dateTime = dateTime;
+        _logger = logger;
     }
 
     public override void Configure()
@@ -81,6 +83,11 @@ public sealed class CreateEndpoint : Endpoint<CreateEndpoint.Request, CreateEndp
 
         _db.Subscriptions.Add(subscription);
         await _db.SaveChangesAsync(ct);
+
+        _logger.LogInformation(
+            "Subscription created: {SubscriptionId} ({SubscriptionName})",
+            subscription.Id,
+            subscription.Name);
 
         await Send.CreatedAtAsync<GetByIdEndpoint>(
             new { id = subscription.Id },

@@ -14,6 +14,11 @@ public sealed class Subscription
     public bool IsActive { get; private set; } = true;
     public string? Url { get; private set; }
     public int ReminderDaysBefore { get; private set; } = 2;
+    /// <summary>
+    /// Last time a notification was sent for this subscription.
+    /// Used to prevent duplicate notifications within the same billing cycle.
+    /// </summary>
+    public DateTime? LastNotifiedAt { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
@@ -82,8 +87,71 @@ public sealed class Subscription
         UpdatedAt = utcNow;
     }
 
-    public bool IsDueSoon(DateTime utcNow) =>
-        IsActive && (NextBillingDate - utcNow).TotalDays <= ReminderDaysBefore;
+    /// <summary>
+    /// Returns true if the subscription is active and NextBillingDate is within
+    /// the reminder window (today &lt;= NextBillingDate &lt;= today + ReminderDaysBefore).
+    /// Excludes subscriptions with NextBillingDate in the past.
+    /// </summary>
+    public bool IsDueSoon(DateTime utcNow)
+    {
+        if (!IsActive) return false;
+
+        var daysUntilBilling = (NextBillingDate.Date - utcNow.Date).TotalDays;
+        return daysUntilBilling >= 0 && daysUntilBilling <= ReminderDaysBefore;
+    }
+
+    /// <summary>
+    /// Determines if a notification should be sent for this subscription.
+    /// Returns true if the subscription is due soon AND has not been notified
+    /// in the current billing cycle.
+    /// </summary>
+    public bool NeedsNotification(DateTime utcNow)
+    {
+        if (!IsDueSoon(utcNow)) return false;
+
+        if (LastNotifiedAt is null) return true;
+
+        var cycleStart = GetCycleStartDate();
+        return LastNotifiedAt.Value < cycleStart;
+    }
+
+    /// <summary>
+    /// Marks this subscription as having been notified.
+    /// </summary>
+    public void MarkNotified(DateTime utcNow)
+    {
+        LastNotifiedAt = utcNow;
+    }
+
+    /// <summary>
+    /// Returns true if NextBillingDate is in the past relative to utcNow.
+    /// </summary>
+    public bool HasPastBillingDate(DateTime utcNow) =>
+        IsActive && NextBillingDate.Date < utcNow.Date;
+
+    /// <summary>
+    /// Advances NextBillingDate to the next valid future date based on the billing cycle.
+    /// </summary>
+    public void AdvanceNextBillingDate(DateTime utcNow)
+    {
+        NextBillingDate = CalculateNextBillingDate(NextBillingDate, BillingCycle, utcNow);
+    }
+
+    /// <summary>
+    /// Calculates the start of the current billing cycle.
+    /// If LastNotifiedAt is before this date, a new notification is needed.
+    /// </summary>
+    private DateTime GetCycleStartDate()
+    {
+        return BillingCycle switch
+        {
+            BillingCycle.Weekly => NextBillingDate.AddDays(-7),
+            BillingCycle.Monthly => NextBillingDate.AddMonths(-1),
+            BillingCycle.Quarterly => NextBillingDate.AddMonths(-3),
+            BillingCycle.Yearly => NextBillingDate.AddYears(-1),
+            _ => NextBillingDate.AddMonths(-1)
+        };
+    }
 
     private static DateTime CalculateNextBillingDate(
         DateTime startDate,

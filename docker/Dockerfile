@@ -11,6 +11,7 @@ WORKDIR /app
 # Copy Flutter project files
 COPY pubspec.yaml pubspec.lock ./
 COPY lib/ lib/
+COPY assets/ assets/
 COPY web/ web/
 COPY .env .env
 

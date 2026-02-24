@@ -73,7 +73,7 @@ Uses **FastEndpoints** (not controllers) with **Vertical Slice Architecture**:
 - Each endpoint is a self-contained class under `Features/`
 - Domain model (`Subscription`) uses a rich domain pattern with private setters and factory methods
 - `Subscription.Create()` static factory generates IDs, calculates next billing date, sets timestamps
-- `DatabaseSeeder` seeds 12 dummy subscriptions in Development mode only
+- `DatabaseSeeder` seeds 18 subscriptions in Development mode only (12 active, 3 inactive, 3 notification test scenarios)
 
 ### Environment Configuration
 
@@ -106,7 +106,7 @@ Uses **GoRouter** with type-safe routing:
 - Immutable with `copyWith()` for updates
 - Computed properties: `monthlyAmount`, `yearlyAmount`, `daysUntilNextBilling`, `isDueSoon`
 - JSON serialization: `fromJson()` and `toJson()` for API communication
-- Fields: `id`, `name`, `description`, `amount`, `currency`, `billingCycle`, `category`, `startDate`, `nextBillingDate`, `isActive`, `url`, `reminderDaysBefore`, `createdAt`, `updatedAt`
+- Fields: `id`, `name`, `description`, `amount`, `currency`, `billingCycle`, `category`, `startDate`, `nextBillingDate`, `isActive`, `url`, `reminderDaysBefore`, `lastNotifiedAt`, `createdAt`, `updatedAt`
 
 **BillingCycle Enum**: Contains logic for calculating next billing dates and normalizing amounts to monthly/yearly equivalents.
 
@@ -184,8 +184,9 @@ lib/features/your_feature/
 - Providers: Filter/sort logic, search, category filtering
 - Extensions: DateTime manipulation
 
-### .NET Tests (8 tests)
-- Domain: Subscription creation, update, IsDueSoon, next billing date calculation
+### .NET Tests (42 tests)
+- Domain: Subscription creation, update, IsDueSoon, next billing date calculation, notification deduplication (NeedsNotification, MarkNotified, HasPastBillingDate, AdvanceNextBillingDate)
+- Import: Validation, atomic import, all billing cycles/currencies/categories
 
 Run tests before committing changes:
 ```bash

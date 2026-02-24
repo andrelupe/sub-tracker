@@ -48,7 +48,7 @@ A full-stack subscription management app built with **Flutter** and **.NET 10**.
 - **Settings & themes** -- system/light/dark theme selector with persistent preferences
 - **Data management** -- export/import subscriptions as JSON files with validation
 - **Cross-platform** -- runs on Web, macOS, iOS, Android, Linux, and Windows
-- **Demo data** -- seeds 12 realistic subscriptions in development mode for quick testing
+- **Demo data** -- seeds 18 subscriptions in development mode for quick testing (12 active, 3 inactive, 3 notification test scenarios)
 
 ## Tech Stack
 
@@ -135,7 +135,7 @@ cd api/src/SubTracker.Api
 dotnet run
 ```
 
-The API starts on `http://localhost:5270` with Swagger at `http://localhost:5270/swagger`. In development mode, the database is auto-migrated and seeded with 12 demo subscriptions.
+The API starts on `http://localhost:5270` with Swagger at `http://localhost:5270/swagger`. In development mode, the database is auto-migrated and seeded with 18 demo subscriptions.
 
 ### 3. Start the frontend
 

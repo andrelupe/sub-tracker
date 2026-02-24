@@ -16,6 +16,7 @@ public sealed class SubscriptionResponse
     public bool IsActive { get; init; }
     public string? Url { get; init; }
     public int ReminderDaysBefore { get; init; }
+    public DateTime? LastNotifiedAt { get; init; }
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }
 }

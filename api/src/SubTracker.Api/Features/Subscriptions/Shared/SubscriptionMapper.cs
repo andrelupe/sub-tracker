@@ -18,6 +18,7 @@ public static class SubscriptionMapper
         IsActive = s.IsActive,
         Url = s.Url,
         ReminderDaysBefore = s.ReminderDaysBefore,
+        LastNotifiedAt = s.LastNotifiedAt,
         CreatedAt = s.CreatedAt,
         UpdatedAt = s.UpdatedAt
     };

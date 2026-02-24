@@ -48,28 +48,39 @@ public sealed class CheckDueSubscriptionsJob : BackgroundService
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var notifications = scope.ServiceProvider.GetRequiredService<INotificationService>();
         var dateTime = scope.ServiceProvider.GetRequiredService<IDateTimeProvider>();
+        var utcNow = dateTime.UtcNow;
 
-        var dueSubscriptions = await db.Subscriptions
+        // Step 1: Advance past billing dates to the next valid future date
+        await AdvancePastBillingDatesAsync(db, utcNow, ct);
+
+        // Step 2: Find subscriptions that are due soon and need notification
+        var activeSubscriptions = await db.Subscriptions
             .Where(s => s.IsActive)
             .ToListAsync(ct);
 
-        var subscriptionsDueSoon = dueSubscriptions.Where(s => s.IsDueSoon(dateTime.UtcNow)).ToList();
-        
-        _logger.LogInformation("Found {Count} subscriptions due for notification", subscriptionsDueSoon.Count);
+        var toNotify = activeSubscriptions.Where(s => s.NeedsNotification(utcNow)).ToList();
 
+        _logger.LogInformation(
+            "Found {Total} active subscriptions, {ToNotify} need notification",
+            activeSubscriptions.Count,
+            toNotify.Count);
+
+        // Step 3: Send notifications and mark as notified
         var successCount = 0;
         var failureCount = 0;
 
-        foreach (var sub in subscriptionsDueSoon)
+        foreach (var sub in toNotify)
         {
             try
             {
-                var days = (int)(sub.NextBillingDate - dateTime.UtcNow).TotalDays;
+                var days = (int)(sub.NextBillingDate.Date - utcNow.Date).TotalDays;
                 await notifications.SendAsync(
                     $"💰 {sub.Name}",
                     $"{sub.Currency} {sub.Amount} renews in {days} day(s)",
                     ct
                 );
+
+                sub.MarkNotified(utcNow);
 
                 _logger.LogInformation(
                     "Notification sent for subscription {SubscriptionId} ({SubscriptionName})",
@@ -90,6 +101,8 @@ public sealed class CheckDueSubscriptionsJob : BackgroundService
             }
         }
 
+        await db.SaveChangesAsync(ct);
+
         stopwatch.Stop();
         
         _logger.LogInformation(
@@ -97,5 +110,38 @@ public sealed class CheckDueSubscriptionsJob : BackgroundService
             stopwatch.ElapsedMilliseconds,
             successCount,
             failureCount);
+    }
+
+    /// <summary>
+    /// Finds active subscriptions with NextBillingDate in the past and advances
+    /// them to the next valid future date. Persists changes to the database.
+    /// </summary>
+    private async Task AdvancePastBillingDatesAsync(AppDbContext db, DateTime utcNow, CancellationToken ct)
+    {
+        var pastDue = await db.Subscriptions
+            .Where(s => s.IsActive)
+            .ToListAsync(ct);
+
+        var toUpdate = pastDue.Where(s => s.HasPastBillingDate(utcNow)).ToList();
+
+        if (toUpdate.Count == 0) return;
+
+        _logger.LogInformation(
+            "Updating {Count} subscriptions with past billing dates",
+            toUpdate.Count);
+
+        foreach (var sub in toUpdate)
+        {
+            var oldDate = sub.NextBillingDate;
+            sub.AdvanceNextBillingDate(utcNow);
+
+            _logger.LogDebug(
+                "Updated {Name} NextBillingDate from {OldDate} to {NewDate}",
+                sub.Name,
+                oldDate,
+                sub.NextBillingDate);
+        }
+
+        await db.SaveChangesAsync(ct);
     }
 }

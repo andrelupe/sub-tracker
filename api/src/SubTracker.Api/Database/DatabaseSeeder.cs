@@ -12,6 +12,8 @@ public static class DatabaseSeeder
 
         var utcNow = DateTime.UtcNow;
 
+        // ── Normal subscriptions (NextBillingDate in the future, no notification issues) ──
+
         var subscriptions = new[]
         {
             Subscription.Create(
@@ -161,7 +163,84 @@ public static class DatabaseSeeder
 
         db.Subscriptions.AddRange(subscriptions);
 
-        // Inactive (paused) subscriptions
+        // ── : Due soon + already notified this cycle → should NOT send again ──
+
+        var alreadyNotified = Subscription.Create(
+            name: "Claude Pro",
+            description: "Already notified this cycle - should NOT trigger again",
+            amount: 20.00m,
+            currency: "USD",
+            billingCycle: BillingCycle.Monthly,
+            category: SubscriptionCategory.Productivity,
+            startDate: utcNow.AddDays(1).AddMonths(-3), // NextBillingDate = tomorrow
+            url: "https://claude.ai",
+            reminderDaysBefore: 3,
+            utcNow: utcNow);
+        alreadyNotified.MarkNotified(utcNow.AddHours(-2)); // Notified 2 hours ago
+        db.Subscriptions.Add(alreadyNotified);
+
+        // ── : Due soon + notified in previous cycle → should send ──
+
+        var notifiedPreviousCycle = Subscription.Create(
+            name: "Notion",
+            description: "Notified last cycle - should trigger new notification",
+            amount: 10.00m,
+            currency: "USD",
+            billingCycle: BillingCycle.Monthly,
+            category: SubscriptionCategory.Productivity,
+            startDate: utcNow.AddDays(1).AddMonths(-5), // NextBillingDate = tomorrow
+            url: "https://notion.so",
+            reminderDaysBefore: 3,
+            utcNow: utcNow);
+        notifiedPreviousCycle.MarkNotified(utcNow.AddMonths(-1).AddDays(-5)); // Notified in previous cycle
+        db.Subscriptions.Add(notifiedPreviousCycle);
+
+        // ── : Due soon + never notified → should send ──
+
+        var neverNotified = Subscription.Create(
+            name: "Linear",
+            description: "Never notified - should trigger notification",
+            amount: 8.00m,
+            currency: "USD",
+            billingCycle: BillingCycle.Monthly,
+            category: SubscriptionCategory.Productivity,
+            startDate: utcNow.AddDays(2).AddMonths(-2), // NextBillingDate = in 2 days
+            url: "https://linear.app",
+            reminderDaysBefore: 3,
+            utcNow: utcNow);
+        // LastNotifiedAt stays null
+        db.Subscriptions.Add(neverNotified);
+
+        // ── : NextBillingDate in the past → job should advance it ──
+
+        var pastDueMonthly = Subscription.Create(
+            name: "Dropbox Plus",
+            description: "Past due - NextBillingDate should be advanced by the job",
+            amount: 11.99m,
+            currency: "EUR",
+            billingCycle: BillingCycle.Monthly,
+            category: SubscriptionCategory.Cloud,
+            startDate: utcNow.AddDays(-5).AddMonths(-3), // NextBillingDate = 5 days ago
+            url: "https://dropbox.com",
+            reminderDaysBefore: 2,
+            utcNow: utcNow.AddMonths(-1)); // Create "as if" a month ago, so NextBillingDate is in the past
+        db.Subscriptions.Add(pastDueMonthly);
+
+        var pastDueWeekly = Subscription.Create(
+            name: "The Athletic",
+            description: "Past due weekly - should be advanced to next valid week",
+            amount: 2.49m,
+            currency: "GBP",
+            billingCycle: BillingCycle.Weekly,
+            category: SubscriptionCategory.News,
+            startDate: utcNow.AddDays(-10), // NextBillingDate = 3 days ago
+            url: "https://theathletic.com",
+            reminderDaysBefore: 1,
+            utcNow: utcNow.AddDays(-10)); // Create "as if" 10 days ago, so NextBillingDate is in the past
+        db.Subscriptions.Add(pastDueWeekly);
+
+        // ── Inactive (paused) subscriptions ──
+
         var inactiveSubscriptions = new[]
         {
             Subscription.Create(

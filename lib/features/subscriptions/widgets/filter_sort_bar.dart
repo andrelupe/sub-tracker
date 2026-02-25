@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:subtracker/core/widgets/responsive_layout.dart';
 import 'package:subtracker/features/subscriptions/models/sort_option.dart';
 import 'package:subtracker/features/subscriptions/models/subscription_category.dart';
 import 'package:subtracker/features/subscriptions/providers/subscription_providers.dart';
@@ -101,17 +102,79 @@ class _CategoryFilterChip extends StatelessWidget {
   }
 
   void _showCategoryPicker(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => _CategoryPickerSheet(
-        selectedCategory: selectedCategory,
-        onSelected: (category) {
-          onSelected(category);
-          Navigator.of(context).pop();
-        },
-      ),
+    if (ResponsiveLayout.isDesktop(context)) {
+      _showCategoryPopupMenu(context);
+    } else {
+      showModalBottomSheet<void>(
+        context: context,
+        showDragHandle: true,
+        builder: (context) => _CategoryPickerSheet(
+          selectedCategory: selectedCategory,
+          onSelected: (category) {
+            onSelected(category);
+            Navigator.of(context).pop();
+          },
+        ),
+      );
+    }
+  }
+
+  void _showCategoryPopupMenu(BuildContext context) {
+    final renderBox = context.findRenderObject()! as RenderBox;
+    final offset = renderBox.localToGlobal(
+      Offset(0, renderBox.size.height),
     );
+    final colorScheme = Theme.of(context).colorScheme;
+
+    // Use int indices: -1 for "All Categories", 0..N for category values
+    // showMenu returns null only on dismiss
+    final items = <PopupMenuEntry<int>>[
+      PopupMenuItem<int>(
+        value: -1,
+        child: Row(
+          children: [
+            const Icon(Icons.category_outlined, size: 20),
+            const SizedBox(width: 8),
+            const Expanded(child: Text('All Categories')),
+            if (selectedCategory == null)
+              Icon(Icons.check, size: 18, color: colorScheme.primary),
+          ],
+        ),
+      ),
+      const PopupMenuDivider(),
+      ...SubscriptionCategory.values.asMap().entries.map(
+            (entry) => PopupMenuItem<int>(
+              value: entry.key,
+              child: Row(
+                children: [
+                  Icon(entry.value.icon, color: entry.value.color, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(entry.value.label)),
+                  if (entry.value == selectedCategory)
+                    Icon(Icons.check, size: 18, color: colorScheme.primary),
+                ],
+              ),
+            ),
+          ),
+    ];
+
+    showMenu<int>(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        offset.dx,
+        offset.dy,
+        offset.dx + renderBox.size.width,
+        offset.dy,
+      ),
+      items: items,
+    ).then((value) {
+      if (value == null) return; // dismissed
+      if (value == -1) {
+        onSelected(null);
+      } else {
+        onSelected(SubscriptionCategory.values[value]);
+      }
+    });
   }
 }
 
@@ -208,18 +271,77 @@ class _SortChip extends StatelessWidget {
   }
 
   void _showSortPicker(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => _SortPickerSheet(
-        sortBy: sortBy,
-        sortAscending: sortAscending,
-        onSelected: (option) {
-          onSortChanged(option);
-          Navigator.of(context).pop();
-        },
-      ),
+    if (ResponsiveLayout.isDesktop(context)) {
+      _showSortPopupMenu(context);
+    } else {
+      showModalBottomSheet<void>(
+        context: context,
+        showDragHandle: true,
+        builder: (context) => _SortPickerSheet(
+          sortBy: sortBy,
+          sortAscending: sortAscending,
+          onSelected: (option) {
+            onSortChanged(option);
+            Navigator.of(context).pop();
+          },
+        ),
+      );
+    }
+  }
+
+  void _showSortPopupMenu(BuildContext context) {
+    final renderBox = context.findRenderObject()! as RenderBox;
+    final offset = renderBox.localToGlobal(
+      Offset(0, renderBox.size.height),
     );
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final iconMap = <SortOption, IconData>{
+      SortOption.nextBillingDate: Icons.calendar_today,
+      SortOption.name: Icons.sort_by_alpha,
+      SortOption.amount: Icons.attach_money,
+      SortOption.category: Icons.category,
+    };
+
+    final items = SortOption.values.map((option) {
+      final isSelected = option == sortBy;
+
+      return PopupMenuItem<SortOption>(
+        value: option,
+        child: Row(
+          children: [
+            Icon(
+              iconMap[option],
+              size: 20,
+              color: isSelected ? colorScheme.primary : null,
+            ),
+            const SizedBox(width: 8),
+            Expanded(child: Text(option.label)),
+            if (isSelected)
+              Icon(
+                sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                size: 18,
+                color: colorScheme.primary,
+              ),
+          ],
+        ),
+      );
+    }).toList();
+
+    showMenu<SortOption>(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        offset.dx,
+        offset.dy,
+        offset.dx + renderBox.size.width,
+        offset.dy,
+      ),
+      items: items,
+    ).then((value) {
+      if (value != null) {
+        onSortChanged(value);
+      }
+    });
   }
 }
 

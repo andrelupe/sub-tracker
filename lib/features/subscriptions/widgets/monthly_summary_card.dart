@@ -21,55 +21,64 @@ class MonthlySummaryCard extends ConsumerWidget {
             final yearlyTotal = ref.read(yearlyTotalProvider);
             final dueSoon = ref.read(dueSoonSubscriptionsProvider);
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Monthly Spending',
-                  style: textTheme.titleSmall?.copyWith(
-                    color:
-                        colorScheme.onPrimaryContainer.withValues(alpha: 0.85),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '€${monthlyTotal.toStringAsFixed(2)}',
-                  style: textTheme.headlineLarge?.copyWith(
-                    color: colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
+            return Semantics(
+              label: 'Monthly spending: €${monthlyTotal.toStringAsFixed(2)}, '
+                  'Yearly: €${yearlyTotal.toStringAsFixed(2)}, '
+                  'Due soon: ${dueSoon.length}',
+              child: ExcludeSemantics(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: _SummaryItem(
-                        label: 'Yearly',
-                        value: '€${yearlyTotal.toStringAsFixed(2)}',
-                        icon: Icons.calendar_today_outlined,
+                    Text(
+                      'Monthly Spending',
+                      style: textTheme.titleSmall?.copyWith(
+                        color: colorScheme.onPrimaryContainer
+                            .withValues(alpha: 0.85),
                       ),
                     ),
-                    Container(
-                      width: 1,
-                      height: 40,
-                      color:
-                          colorScheme.onPrimaryContainer.withValues(alpha: 0.3),
+                    const SizedBox(height: 4),
+                    Text(
+                      '€${monthlyTotal.toStringAsFixed(2)}',
+                      style: textTheme.headlineLarge?.copyWith(
+                        color: colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    Expanded(
-                      child: Tooltip(
-                        message: 'Subscriptions due in the next 2 days',
-                        preferBelow: false,
-                        child: _SummaryItem(
-                          label: 'Due Soon',
-                          value: '${dueSoon.length}',
-                          icon: Icons.notifications_outlined,
-                          highlight: dueSoon.isNotEmpty,
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _SummaryItem(
+                            label: 'Yearly',
+                            value: '€${yearlyTotal.toStringAsFixed(2)}',
+                            icon: Icons.calendar_today_outlined,
+                          ),
                         ),
-                      ),
+                        ExcludeSemantics(
+                          child: Container(
+                            width: 1,
+                            height: 40,
+                            color: colorScheme.onPrimaryContainer
+                                .withValues(alpha: 0.3),
+                          ),
+                        ),
+                        Expanded(
+                          child: Tooltip(
+                            message: 'Subscriptions due in the next 2 days',
+                            preferBelow: false,
+                            child: _SummaryItem(
+                              label: 'Due Soon',
+                              value: '${dueSoon.length}',
+                              icon: Icons.notifications_outlined,
+                              highlight: dueSoon.isNotEmpty,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             );
           },
           loading: () => Column(
@@ -157,23 +166,28 @@ class _SummaryItem extends StatelessWidget {
         children: [
           Icon(icon, size: 20, color: textColor),
           const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: textTheme.labelSmall?.copyWith(
-                  color: colorScheme.onPrimaryContainer.withValues(alpha: 0.85),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: textTheme.labelSmall?.copyWith(
+                    color:
+                        colorScheme.onPrimaryContainer.withValues(alpha: 0.85),
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              Text(
-                value,
-                style: textTheme.titleMedium?.copyWith(
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
+                Text(
+                  value,
+                  style: textTheme.titleMedium?.copyWith(
+                    color: textColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

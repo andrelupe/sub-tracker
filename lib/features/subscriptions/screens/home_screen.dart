@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:subtracker/core/router/app_router.dart';
 import 'package:subtracker/core/widgets/centered_content.dart';
+import 'package:subtracker/core/widgets/keyboard_shortcuts.dart';
 import 'package:subtracker/core/widgets/responsive_layout.dart';
 import 'package:subtracker/features/subscriptions/models/sort_option.dart';
 import 'package:subtracker/features/subscriptions/models/subscription.dart';
@@ -23,12 +24,14 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
   Timer? _debounceTimer;
 
   @override
   void dispose() {
     _debounceTimer?.cancel();
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -46,6 +49,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildSearchBar(String searchQuery) {
     return SearchBar(
       controller: _searchController,
+      focusNode: _searchFocusNode,
       hintText: 'Search subscriptions...',
       textInputAction: TextInputAction.search,
       leading: const Padding(
@@ -108,14 +112,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildSubscriptionList(
     List<Subscription> filteredSubscriptions,
     bool hasActiveFilters,
-    String searchQuery,
-  ) {
+    String searchQuery, {
+    bool showAddCard = true,
+  }) {
     return Column(
       children: [
-        _AddSubscriptionCard(
-          onTap: () => context.push(AppRoutes.addSubscription),
-        ),
-        const SizedBox(height: 8),
+        if (showAddCard) ...[
+          _AddSubscriptionCard(
+            onTap: () => context.push(AppRoutes.addSubscription),
+          ),
+          const SizedBox(height: 8),
+        ],
         if (filteredSubscriptions.isEmpty && hasActiveFilters)
           _NoResultsState(query: searchQuery)
         else
@@ -172,6 +179,82 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  Widget _buildTabletLayout({
+    required String searchQuery,
+    required List<Subscription> filteredSubscriptions,
+    required bool hasActiveFilters,
+    required bool showInactive,
+  }) {
+    return CenteredContent(
+      maxWidth: 900,
+      padding: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Compact sidebar
+            SizedBox(
+              width: 280,
+              child: ListView(
+                children: [
+                  const MonthlySummaryCard(),
+                  const SizedBox(height: 12),
+                  _buildSearchBar(searchQuery),
+                  const SizedBox(height: 12),
+                  FilterSortBar(
+                    onClearFilters: () => _clearAllFilters(ref),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: () => context.push(AppRoutes.addSubscription),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add Subscription'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Main content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionHeader(
+                    filteredSubscriptions,
+                    hasActiveFilters,
+                    showInactive,
+                  ),
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: () async {
+                        ref.invalidate(subscriptionsNotifierProvider);
+                      },
+                      child: ListView(
+                        children: [
+                          _buildSubscriptionList(
+                            filteredSubscriptions,
+                            hasActiveFilters,
+                            searchQuery,
+                            showAddCard: false,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildDesktopLayout({
     required String searchQuery,
     required List<Subscription> filteredSubscriptions,
@@ -201,6 +284,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         FilterSortBar(
                           onClearFilters: () => _clearAllFilters(ref),
                         ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.icon(
+                            onPressed: () =>
+                                context.push(AppRoutes.addSubscription),
+                            icon: const Icon(Icons.add),
+                            label: const Text('Add Subscription'),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -227,6 +320,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   filteredSubscriptions,
                                   hasActiveFilters,
                                   searchQuery,
+                                  showAddCard: false,
                                 ),
                               ],
                             ),
@@ -251,89 +345,94 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final isDesktop = ResponsiveLayout.isDesktop(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        titleSpacing: 0,
-        centerTitle: true,
-        title: CenteredContent(
-          maxWidth: isDesktop ? 1100 : double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: isDesktop ? 24 : 16),
-          child: Row(
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image.asset(
-                    'assets/icon.png',
-                    height: 32,
-                    width: 32,
-                  ),
-                  const SizedBox(width: 10),
-                  const Text('SubTracker'),
-                ],
-              ),
-              const Spacer(),
-              if (ResponsiveLayout.isDesktop(context))
-                IconButton(
-                  icon: const Icon(Icons.refresh),
-                  tooltip: 'Refresh',
-                  onPressed: () =>
-                      ref.invalidate(subscriptionsNotifierProvider),
+    return KeyboardShortcuts(
+      onAddSubscription: () => context.push(AppRoutes.addSubscription),
+      onFocusSearch: () => _searchFocusNode.requestFocus(),
+      onRefresh: () => ref.invalidate(subscriptionsNotifierProvider),
+      onEscape: () {
+        // If search is focused, unfocus it; otherwise do nothing on home
+        if (_searchFocusNode.hasFocus) {
+          _searchFocusNode.unfocus();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          titleSpacing: 0,
+          centerTitle: true,
+          title: CenteredContent(
+            maxWidth: isDesktop ? 1100 : double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: isDesktop ? 24 : 16),
+            child: Row(
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(
+                      'assets/icon.png',
+                      height: 32,
+                      width: 32,
+                    ),
+                    const SizedBox(width: 10),
+                    const Text('SubTracker'),
+                  ],
                 ),
-              IconButton(
-                icon: const Icon(Icons.settings),
-                tooltip: 'Settings',
-                onPressed: () => context.push(AppRoutes.settings),
-              ),
-            ],
-          ),
-        ),
-        actions: const [SizedBox.shrink()],
-      ),
-      body: asyncSubscriptions.when(
-        data: (allSubscriptions) {
-          if (allSubscriptions.isEmpty) {
-            return _EmptyState(
-              onAdd: () => context.push(AppRoutes.addSubscription),
-            );
-          }
-
-          final filteredSubscriptions =
-              ref.watch(filteredSubscriptionsProvider);
-          final hasActiveFilters = ref.watch(hasActiveFiltersProvider);
-          final showInactive = ref.watch(showInactiveProvider);
-
-          return ResponsiveLayout(
-            mobile: _buildMobileLayout(
-              searchQuery: searchQuery,
-              filteredSubscriptions: filteredSubscriptions,
-              hasActiveFilters: hasActiveFilters,
-              showInactive: showInactive,
+                const Spacer(),
+                if (ResponsiveLayout.isDesktop(context))
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    tooltip: 'Refresh',
+                    onPressed: () =>
+                        ref.invalidate(subscriptionsNotifierProvider),
+                  ),
+                IconButton(
+                  icon: const Icon(Icons.settings),
+                  tooltip: 'Settings',
+                  onPressed: () => context.push(AppRoutes.settings),
+                ),
+              ],
             ),
-            tablet: CenteredContent(
-              maxWidth: 600,
-              padding: EdgeInsets.zero,
-              child: _buildMobileLayout(
+          ),
+          actions: const [SizedBox.shrink()],
+        ),
+        body: asyncSubscriptions.when(
+          data: (allSubscriptions) {
+            if (allSubscriptions.isEmpty) {
+              return _EmptyState(
+                onAdd: () => context.push(AppRoutes.addSubscription),
+              );
+            }
+
+            final filteredSubscriptions =
+                ref.watch(filteredSubscriptionsProvider);
+            final hasActiveFilters = ref.watch(hasActiveFiltersProvider);
+            final showInactive = ref.watch(showInactiveProvider);
+
+            return ResponsiveLayout(
+              mobile: _buildMobileLayout(
                 searchQuery: searchQuery,
                 filteredSubscriptions: filteredSubscriptions,
                 hasActiveFilters: hasActiveFilters,
                 showInactive: showInactive,
               ),
-            ),
-            desktop: _buildDesktopLayout(
-              searchQuery: searchQuery,
-              filteredSubscriptions: filteredSubscriptions,
-              hasActiveFilters: hasActiveFilters,
-              showInactive: showInactive,
-            ),
-          );
-        },
-        loading: () => const Center(
-          child: CircularProgressIndicator(),
-        ),
-        error: (error, _) => _ErrorState(
-          message: error.toString(),
-          onRetry: () => ref.invalidate(subscriptionsNotifierProvider),
+              tablet: _buildTabletLayout(
+                searchQuery: searchQuery,
+                filteredSubscriptions: filteredSubscriptions,
+                hasActiveFilters: hasActiveFilters,
+                showInactive: showInactive,
+              ),
+              desktop: _buildDesktopLayout(
+                searchQuery: searchQuery,
+                filteredSubscriptions: filteredSubscriptions,
+                hasActiveFilters: hasActiveFilters,
+                showInactive: showInactive,
+              ),
+            );
+          },
+          loading: () => const _SkeletonLoading(),
+          error: (error, _) => _ErrorState(
+            message: error.toString(),
+            onRetry: () => ref.invalidate(subscriptionsNotifierProvider),
+          ),
         ),
       ),
     );
@@ -467,6 +566,248 @@ class _NoResultsState extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _SkeletonLoading extends StatelessWidget {
+  const _SkeletonLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    final isDesktop = ResponsiveLayout.isDesktop(context);
+    final isTablet = ResponsiveLayout.isTablet(context);
+
+    if (isDesktop) {
+      return CenteredContent(
+        maxWidth: 1100,
+        padding: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 320,
+                child: Column(
+                  children: [
+                    const _SkeletonSummaryCard(),
+                    const SizedBox(height: 16),
+                    _SkeletonBox(height: 48, borderRadius: 28),
+                    const SizedBox(height: 16),
+                    const Row(
+                      children: [
+                        _SkeletonBox(height: 32, width: 120, borderRadius: 8),
+                        SizedBox(width: 8),
+                        _SkeletonBox(height: 32, width: 100, borderRadius: 8),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 24),
+              Expanded(
+                child: Column(
+                  children: List.generate(
+                    6,
+                    (index) => const Padding(
+                      padding: EdgeInsets.only(bottom: 8),
+                      child: _SkeletonSubscriptionTile(),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    Widget content = ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        const _SkeletonSummaryCard(),
+        const SizedBox(height: 16),
+        _SkeletonBox(height: 48, borderRadius: 28),
+        const SizedBox(height: 12),
+        const Row(
+          children: [
+            _SkeletonBox(height: 32, width: 120, borderRadius: 8),
+            SizedBox(width: 8),
+            _SkeletonBox(height: 32, width: 100, borderRadius: 8),
+          ],
+        ),
+        const SizedBox(height: 24),
+        ...List.generate(
+          5,
+          (index) => const Padding(
+            padding: EdgeInsets.only(bottom: 8),
+            child: _SkeletonSubscriptionTile(),
+          ),
+        ),
+      ],
+    );
+
+    if (isTablet) {
+      content = CenteredContent(
+        maxWidth: 600,
+        padding: EdgeInsets.zero,
+        child: content,
+      );
+    }
+
+    return content;
+  }
+}
+
+class _SkeletonSummaryCard extends StatelessWidget {
+  const _SkeletonSummaryCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return _ShimmerEffect(
+      child: Card(
+        color: colorScheme.primaryContainer.withValues(alpha: 0.4),
+        child: const Padding(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _SkeletonBox(height: 14, width: 120, borderRadius: 4),
+              SizedBox(height: 8),
+              _SkeletonBox(height: 32, width: 160, borderRadius: 6),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _SkeletonBox(height: 40, borderRadius: 6),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _SkeletonBox(height: 40, borderRadius: 6),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SkeletonSubscriptionTile extends StatelessWidget {
+  const _SkeletonSubscriptionTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return _ShimmerEffect(
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              _SkeletonBox(height: 48, width: 48, borderRadius: 12),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _SkeletonBox(height: 16, width: 140, borderRadius: 4),
+                    SizedBox(height: 6),
+                    _SkeletonBox(height: 12, width: 100, borderRadius: 4),
+                  ],
+                ),
+              ),
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _SkeletonBox(height: 16, width: 80, borderRadius: 4),
+                  SizedBox(height: 6),
+                  _SkeletonBox(height: 12, width: 50, borderRadius: 4),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SkeletonBox extends StatelessWidget {
+  const _SkeletonBox({
+    required this.height,
+    this.width,
+    required this.borderRadius,
+  });
+
+  final double height;
+  final double? width;
+  final double borderRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      height: height,
+      width: width,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(borderRadius),
+      ),
+    );
+  }
+}
+
+class _ShimmerEffect extends StatefulWidget {
+  const _ShimmerEffect({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_ShimmerEffect> createState() => _ShimmerEffectState();
+}
+
+class _ShimmerEffectState extends State<_ShimmerEffect>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Opacity(
+          opacity: 0.4 + (0.6 * _pulseValue()),
+          child: child,
+        );
+      },
+      child: widget.child,
+    );
+  }
+
+  double _pulseValue() {
+    // Smooth pulse: 0 → 1 → 0
+    final value = _controller.value;
+    return value < 0.5 ? value * 2 : 2 - (value * 2);
   }
 }
 

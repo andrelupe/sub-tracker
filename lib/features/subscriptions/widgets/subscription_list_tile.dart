@@ -29,11 +29,29 @@ class _SubscriptionListTileState extends ConsumerState<SubscriptionListTile> {
   Widget build(BuildContext context) {
     final isDesktop = ResponsiveLayout.isDesktop(context);
 
-    if (isDesktop) {
-      return _buildDesktopTile(context);
+    return Semantics(
+      label: _buildSemanticLabel(),
+      button: true,
+      child: ExcludeSemantics(
+        child:
+            isDesktop ? _buildDesktopTile(context) : _buildMobileTile(context),
+      ),
+    );
+  }
+
+  String _buildSemanticLabel() {
+    final sub = widget.subscription;
+    final buffer = StringBuffer()
+      ..write('${sub.name}, ')
+      ..write('${sub.currency} ${sub.amount.toStringAsFixed(2)}, ')
+      ..write('next billing ${sub.nextBillingDate.formatted}, ')
+      ..write(sub.billingCycle.label);
+
+    if (!sub.isActive) {
+      buffer.write(', paused');
     }
 
-    return _buildMobileTile(context);
+    return buffer.toString();
   }
 
   // -- Desktop: Card com botões inline no hover --------------------------
@@ -124,11 +142,25 @@ class _SubscriptionListTileState extends ConsumerState<SubscriptionListTile> {
                     const SizedBox(width: 8),
                   ],
                   _buildPriceInfo(),
+                  _buildSwipeHint(),
                 ],
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSwipeHint() {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Icon(
+        Icons.chevron_left,
+        size: 16,
+        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
       ),
     );
   }

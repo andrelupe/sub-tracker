@@ -253,10 +253,11 @@ cd api && dotnet test
 | ------- | ------------------------------- | ------- |
 | v2.2.0  | Settings, Themes, Import/Export | Done    |
 | v2.2.1  | Responsive Desktop Layout       | Done    |
-| v2.2.2  | UI Polish & Desktop UX          | Next    |
-| v2.3.0  | JWT Auth & Multi-currency       | Planned |
-| v2.4.0  | Analytics & Charts              | Planned |
-| v2.5.0  | Multi-user support              | Planned |
+| v2.2.2  | UI Polish & Desktop UX          | Done    |
+| v2.3.0  | UI & Accessibility              | Done    |
+| v2.4.0  | JWT Auth & Multi-currency       | Planned |
+| v2.5.0  | Analytics & Charts              | Planned |
+| v2.6.0  | Multi-user support              | Planned |
 
 See [ROADMAP.md](ROADMAP.md) for details.
 

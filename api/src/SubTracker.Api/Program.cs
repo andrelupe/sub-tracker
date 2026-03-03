@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using SubTracker.Api.Common;
 using SubTracker.Api.Database;
+using SubTracker.Api.Common.Middleware;
 using SubTracker.Api.Features.Notifications;
 
 // Configurar Serilog bootstrap logger
@@ -67,6 +68,7 @@ try
     }
 
     app.UseCors();
+    app.UseMiddleware<ApiKeyMiddleware>();
     app.UseSerilogRequestLogging();
     app.UseFastEndpoints();
     app.UseSwaggerGen();
@@ -84,3 +86,6 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+// Required for WebApplicationFactory in integration tests
+public partial class Program;

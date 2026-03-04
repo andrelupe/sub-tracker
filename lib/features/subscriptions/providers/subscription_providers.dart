@@ -1,5 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:subtracker/core/providers/api_providers.dart';
+import 'package:subtracker/features/exchange_rates/convert_amount.dart';
+import 'package:subtracker/features/exchange_rates/providers/exchange_rate_providers.dart';
+import 'package:subtracker/features/settings/providers/user_settings_providers.dart';
 import 'package:subtracker/features/subscriptions/models/billing_cycle.dart';
 import 'package:subtracker/features/subscriptions/models/sort_option.dart';
 import 'package:subtracker/features/subscriptions/models/subscription.dart';
@@ -150,6 +153,67 @@ Subscription? subscriptionById(SubscriptionByIdRef ref, String id) {
     },
     loading: () => null,
     error: (_, __) => null,
+  );
+}
+
+// Converted total providers (multi-currency)
+@riverpod
+double convertedMonthlyTotal(ConvertedMonthlyTotalRef ref) {
+  final asyncSubs = ref.watch(subscriptionsNotifierProvider);
+  final baseCurrency = ref.watch(baseCurrencyProvider);
+  final ratesAsync = ref.watch(exchangeRatesNotifierProvider);
+
+  return asyncSubs.when(
+    data: (allSubs) {
+      final active = allSubs.where((s) => s.isActive);
+      final rates = ratesAsync.valueOrNull;
+      return active.fold<double>(0.0, (double sum, sub) {
+        final monthly = sub.monthlyAmount;
+        if (rates == null || sub.currency == baseCurrency) {
+          return sum + monthly;
+        }
+        return sum +
+            convertAmount(
+              amount: monthly,
+              fromCurrency: sub.currency,
+              toCurrency: baseCurrency,
+              ratesBaseCurrency: rates.baseCurrency,
+              rates: rates.rates,
+            );
+      });
+    },
+    loading: () => 0.0,
+    error: (_, __) => 0.0,
+  );
+}
+
+@riverpod
+double convertedYearlyTotal(ConvertedYearlyTotalRef ref) {
+  final asyncSubs = ref.watch(subscriptionsNotifierProvider);
+  final baseCurrency = ref.watch(baseCurrencyProvider);
+  final ratesAsync = ref.watch(exchangeRatesNotifierProvider);
+
+  return asyncSubs.when(
+    data: (allSubs) {
+      final active = allSubs.where((s) => s.isActive);
+      final rates = ratesAsync.valueOrNull;
+      return active.fold<double>(0.0, (double sum, sub) {
+        final yearly = sub.yearlyAmount;
+        if (rates == null || sub.currency == baseCurrency) {
+          return sum + yearly;
+        }
+        return sum +
+            convertAmount(
+              amount: yearly,
+              fromCurrency: sub.currency,
+              toCurrency: baseCurrency,
+              ratesBaseCurrency: rates.baseCurrency,
+              rates: rates.rates,
+            );
+      });
+    },
+    loading: () => 0.0,
+    error: (_, __) => 0.0,
   );
 }
 

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:subtracker/features/exchange_rates/providers/exchange_rate_providers.dart';
+import 'package:subtracker/features/settings/models/user_settings.dart';
+import 'package:subtracker/features/settings/providers/user_settings_providers.dart';
 import 'package:subtracker/features/subscriptions/providers/subscription_providers.dart';
 
 class MonthlySummaryCard extends ConsumerWidget {
@@ -8,6 +11,9 @@ class MonthlySummaryCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final subscriptionsAsync = ref.watch(subscriptionsNotifierProvider);
+    final baseCurrency = ref.watch(baseCurrencyProvider);
+    final symbol = UserSettings.currencySymbol(baseCurrency);
+    final ratesAsync = ref.watch(exchangeRatesNotifierProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -17,28 +23,54 @@ class MonthlySummaryCard extends ConsumerWidget {
         padding: const EdgeInsets.all(20),
         child: subscriptionsAsync.when(
           data: (subscriptions) {
-            final monthlyTotal = ref.read(monthlyTotalProvider);
-            final yearlyTotal = ref.read(yearlyTotalProvider);
-            final dueSoon = ref.read(dueSoonSubscriptionsProvider);
+            final monthlyTotal = ref.watch(convertedMonthlyTotalProvider);
+            final yearlyTotal = ref.watch(convertedYearlyTotalProvider);
+            final dueSoon = ref.watch(dueSoonSubscriptionsProvider);
+
+            // Check if rates are stale (date older than 24h)
+            final isStale = ratesAsync.whenOrNull(
+              data: (rates) {
+                final rateDate = DateTime.tryParse(rates.date);
+                if (rateDate == null) return true;
+                return DateTime.now().difference(rateDate).inHours > 24;
+              },
+            );
 
             return Semantics(
-              label: 'Monthly spending: €${monthlyTotal.toStringAsFixed(2)}, '
-                  'Yearly: €${yearlyTotal.toStringAsFixed(2)}, '
+              label:
+                  'Monthly spending: $symbol${monthlyTotal.toStringAsFixed(2)}, '
+                  'Yearly: $symbol${yearlyTotal.toStringAsFixed(2)}, '
                   'Due soon: ${dueSoon.length}',
               child: ExcludeSemantics(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Monthly Spending',
-                      style: textTheme.titleSmall?.copyWith(
-                        color: colorScheme.onPrimaryContainer
-                            .withValues(alpha: 0.85),
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Monthly Spending',
+                            style: textTheme.titleSmall?.copyWith(
+                              color: colorScheme.onPrimaryContainer
+                                  .withValues(alpha: 0.85),
+                            ),
+                          ),
+                        ),
+                        if (isStale == true)
+                          Tooltip(
+                            message: 'Exchange rates may be outdated',
+                            child: Icon(
+                              Icons.warning_amber_rounded,
+                              size: 16,
+                              color: colorScheme.onPrimaryContainer
+                                  .withValues(alpha: 0.6),
+                            ),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '€${monthlyTotal.toStringAsFixed(2)}',
+                      '$symbol${monthlyTotal.toStringAsFixed(2)}',
                       style: textTheme.headlineLarge?.copyWith(
                         color: colorScheme.onPrimaryContainer,
                         fontWeight: FontWeight.bold,
@@ -50,7 +82,7 @@ class MonthlySummaryCard extends ConsumerWidget {
                         Expanded(
                           child: _SummaryItem(
                             label: 'Yearly',
-                            value: '€${yearlyTotal.toStringAsFixed(2)}',
+                            value: '$symbol${yearlyTotal.toStringAsFixed(2)}',
                             icon: Icons.calendar_today_outlined,
                           ),
                         ),

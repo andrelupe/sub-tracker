@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SubTracker.Api.Features.Settings.Domain;
 using SubTracker.Api.Features.Subscriptions.Domain;
 
 namespace SubTracker.Api.Database;
@@ -7,6 +8,13 @@ public static class DatabaseSeeder
 {
     public static async Task SeedAsync(AppDbContext db)
     {
+        // Seed UserSettings if not present
+        if (!await db.UserSettings.AnyAsync())
+        {
+            db.UserSettings.Add(UserSettings.CreateDefault(DateTime.UtcNow));
+            await db.SaveChangesAsync();
+        }
+
         if (await db.Subscriptions.AnyAsync())
             return;
 

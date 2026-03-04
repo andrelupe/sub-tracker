@@ -3,15 +3,41 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   static const Duration _timeout = Duration(seconds: 10);
+  static const String _apiKeyHeader = 'X-Api-Key';
+  static const String _authFailedMessage =
+      'Authentication failed. Check your API key.';
 
   final String _baseUrl;
   final http.Client _client;
+  final String _apiKey;
 
   ApiService({
     required String baseUrl,
+    String apiKey = '',
     http.Client? client,
   })  : _baseUrl = baseUrl,
+        _apiKey = apiKey,
         _client = client ?? http.Client();
+
+  /// Builds the default headers for all requests.
+  /// Includes the API key header when configured.
+  Map<String, String> _headers({String? contentType}) {
+    final headers = <String, String>{};
+    if (contentType != null) {
+      headers['Content-Type'] = contentType;
+    }
+    if (_apiKey.isNotEmpty) {
+      headers[_apiKeyHeader] = _apiKey;
+    }
+    return headers;
+  }
+
+  /// Checks the response for a 401 status and throws an [ApiException].
+  void _check401(http.Response response) {
+    if (response.statusCode == 401) {
+      throw const ApiException(_authFailedMessage, 401);
+    }
+  }
 
   Future<T> get<T>(
     String endpoint, {
@@ -19,7 +45,10 @@ class ApiService {
   }) async {
     try {
       final uri = Uri.parse('$_baseUrl$endpoint');
-      final response = await _client.get(uri).timeout(_timeout);
+      final response =
+          await _client.get(uri, headers: _headers()).timeout(_timeout);
+
+      _check401(response);
 
       if (response.statusCode == 200) {
         final dynamic decoded = json.decode(response.body);
@@ -47,7 +76,10 @@ class ApiService {
   ) async {
     try {
       final uri = Uri.parse('$_baseUrl$endpoint');
-      final response = await _client.get(uri).timeout(_timeout);
+      final response =
+          await _client.get(uri, headers: _headers()).timeout(_timeout);
+
+      _check401(response);
 
       if (response.statusCode == 200) {
         final dynamic decoded = json.decode(response.body);
@@ -75,10 +107,12 @@ class ApiService {
       final response = await _client
           .post(
             uri,
-            headers: {'Content-Type': 'application/json'},
+            headers: _headers(contentType: 'application/json'),
             body: json.encode(data),
           )
           .timeout(_timeout);
+
+      _check401(response);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final dynamic decoded = json.decode(response.body);
@@ -107,10 +141,12 @@ class ApiService {
       final response = await _client
           .put(
             uri,
-            headers: {'Content-Type': 'application/json'},
+            headers: _headers(contentType: 'application/json'),
             body: json.encode(data),
           )
           .timeout(_timeout);
+
+      _check401(response);
 
       if (response.statusCode == 204) {
         return;
@@ -134,7 +170,10 @@ class ApiService {
   Future<void> delete(String endpoint) async {
     try {
       final uri = Uri.parse('$_baseUrl$endpoint');
-      final response = await _client.delete(uri).timeout(_timeout);
+      final response =
+          await _client.delete(uri, headers: _headers()).timeout(_timeout);
+
+      _check401(response);
 
       if (response.statusCode == 204) {
         return;

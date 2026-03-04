@@ -36,16 +36,18 @@ A full-stack subscription management app built with **Flutter** and **.NET 10**.
 ## Features
 
 - **Subscription tracking** -- manage name, amount, currency (EUR/USD/GBP), billing cycle, category, start date, and URL
-- **Spending overview** -- monthly and yearly totals calculated from all active subscriptions, normalized across billing cycles
+- **Multi-currency support** -- set a base currency (EUR/USD/GBP) and see converted totals; exchange rates fetched from Frankfurter API with 24h cache
+- **Spending overview** -- monthly and yearly totals converted to your base currency, normalized across billing cycles
 - **Due soon alerts** -- visual indicators for subscriptions due within a configurable window (0-30 days)
 - **Push notifications** -- automatic Pushover alerts for upcoming bills via a background job
+- **API key authentication** -- optional `X-Api-Key` header protection for all API endpoints
 - **Search, filter, and sort** -- find subscriptions by name, description, or category; sort by date, name, amount, or category
 - **Swipe actions** -- pause/resume or delete subscriptions with swipe gestures (mobile)
 - **Desktop hover actions** -- pause/resume or delete via inline buttons on hover
 - **Undo delete** -- 5-second SnackBar with undo action after deleting a subscription
 - **Active/Inactive toggle** -- pause tracking without losing data, with visual "Paused" badge
 - **Responsive desktop layout** -- two-column layout with sidebar, sticky headers, and refresh button
-- **Settings & themes** -- system/light/dark theme selector with persistent preferences
+- **Settings & themes** -- system/light/dark theme selector, base currency selector with persistent preferences
 - **Data management** -- export/import subscriptions as JSON files with validation
 - **Cross-platform** -- runs on Web, macOS, iOS, Android, Linux, and Windows
 - **Demo data** -- seeds 18 subscriptions in development mode for quick testing (12 active, 3 inactive, 3 notification test scenarios)
@@ -81,11 +83,16 @@ sub-tracker/
 │   │   ├── services/                # Generic HTTP API client
 │   │   └── theme/                   # Material 3 theming (light + dark)
 │   ├── features/
+│   │   ├── exchange_rates/
+│   │   │   ├── models/              # ExchangeRate model
+│   │   │   ├── providers/           # ExchangeRatesNotifier (keepAlive, Frankfurter API)
+│   │   │   └── services/            # Exchange rate API service
 │   │   ├── settings/
-│   │   │   ├── providers/           # ThemeModeNotifier with SharedPreferences
+│   │   │   ├── models/              # UserSettings model (base currency)
+│   │   │   ├── providers/           # UserSettingsNotifier, baseCurrencyProvider
 │   │   │   ├── screens/             # SettingsScreen
-│   │   │   ├── services/            # FileService for import/export
-│   │   │   └── widgets/             # ThemeSelector, ExportButton, ImportButton, AboutSection
+│   │   │   ├── services/            # FileService, SettingsApiService
+│   │   │   └── widgets/             # ThemeSelector, CurrencySelector, ExportButton, ImportButton, AboutSection
 │   │   └── subscriptions/
 │   │       ├── models/              # Subscription, BillingCycle, Category, SortOption
 │   │       ├── providers/           # Async Riverpod state management
@@ -96,11 +103,13 @@ sub-tracker/
 │
 ├── api/                             # .NET backend
 │   ├── src/SubTracker.Api/
-│   │   ├── Common/                  # Shared abstractions (IDateTimeProvider, INotificationService)
+│   │   ├── Common/                  # Shared abstractions + ApiKeyMiddleware
 │   │   ├── Database/                # EF Core DbContext + DatabaseSeeder
 │   │   ├── Features/
 │   │   │   ├── Subscriptions/       # CRUD endpoints + Domain + DTOs
-│   │   │   └── Notifications/       # Pushover + Background Jobs
+│   │   │   ├── Notifications/       # Pushover + Background Jobs
+│   │   │   ├── ExchangeRates/       # Frankfurter client, rate service, background refresh
+│   │   │   └── Settings/            # User settings endpoints (base currency)
 │   │   ├── Migrations/              # EF Core migrations
 │   │   └── Program.cs
 │   ├── tests/SubTracker.Api.Tests/  # xUnit domain tests
@@ -152,15 +161,20 @@ flutter run -d chrome
 
 ## API Endpoints
 
-| Method   | Endpoint                    | Description                 |
-| -------- | --------------------------- | --------------------------- |
-| `GET`    | `/api/subscriptions`        | List all subscriptions      |
-| `GET`    | `/api/subscriptions/{id}`   | Get subscription by ID      |
-| `POST`   | `/api/subscriptions`        | Create a subscription       |
-| `PUT`    | `/api/subscriptions/{id}`   | Update a subscription       |
-| `DELETE` | `/api/subscriptions/{id}`   | Delete a subscription       |
-| `POST`   | `/api/subscriptions/import` | Import subscriptions (JSON) |
-| `GET`    | `/swagger`                  | Swagger UI documentation    |
+| Method   | Endpoint                    | Description                          |
+| -------- | --------------------------- | ------------------------------------ |
+| `GET`    | `/api/subscriptions`        | List all subscriptions               |
+| `GET`    | `/api/subscriptions/{id}`   | Get subscription by ID               |
+| `POST`   | `/api/subscriptions`        | Create a subscription                |
+| `PUT`    | `/api/subscriptions/{id}`   | Update a subscription                |
+| `DELETE` | `/api/subscriptions/{id}`   | Delete a subscription                |
+| `POST`   | `/api/subscriptions/import` | Import subscriptions (JSON)          |
+| `GET`    | `/api/settings`             | Get user settings (base currency)    |
+| `PUT`    | `/api/settings`             | Update user settings                 |
+| `GET`    | `/api/exchange-rates`       | Get exchange rates (query: `?base=`) |
+| `GET`    | `/swagger`                  | Swagger UI documentation             |
+
+All endpoints (except `/health` and `/swagger`) are protected by the `X-Api-Key` header when `ApiKey` is configured in `appsettings.json`.
 
 ## Docker
 
@@ -185,6 +199,19 @@ docker run -d \
   -e ConnectionStrings__Default="Data Source=/data/subtracker.db" \
   andrelppereira/subtracker-api:latest
 ```
+
+### With API Key Authentication
+
+```bash
+docker run -d \
+  -p 80:80 \
+  -v subtracker-data:/data \
+  -e ConnectionStrings__Default="Data Source=/data/subtracker.db" \
+  -e ApiKey=your-secret-api-key \
+  andrelppereira/subtracker:latest
+```
+
+> When `ApiKey` is set, all API requests must include the `X-Api-Key` header. The `/health` and `/swagger` endpoints are excluded. Leave empty to disable authentication.
 
 ### With Pushover Notifications
 
@@ -211,12 +238,16 @@ docker-compose up -d
 
 ```env
 API_BASE_URL=http://localhost:5270/api
+API_KEY=dev-test-key-12345
 ```
+
+The `API_KEY` is sent as an `X-Api-Key` header on every request. Leave empty if the backend has no API key configured.
 
 ### Backend (appsettings.json)
 
 ```json
 {
+  "ApiKey": "",
   "ConnectionStrings": {
     "Default": "Data Source=subtracker.db"
   },
@@ -227,7 +258,12 @@ API_BASE_URL=http://localhost:5270/api
 }
 ```
 
-Pushover notifications are optional. Without valid credentials, the background job runs but notifications are silently skipped.
+- **ApiKey**: When set, all API endpoints require the `X-Api-Key` header. Leave empty to disable authentication. Generate a secure key with:
+  ```bash
+  openssl rand -base64 32
+  ```
+- **Pushover**: Optional. Without valid credentials, the background job runs but notifications are silently skipped.
+- **Exchange rates**: Fetched automatically from the [Frankfurter API](https://api.frankfurter.dev) every 6 hours. No configuration needed.
 
 ## Running Tests
 
@@ -255,7 +291,7 @@ cd api && dotnet test
 | v2.2.1  | Responsive Desktop Layout       | Done    |
 | v2.2.2  | UI Polish & Desktop UX          | Done    |
 | v2.3.0  | UI & Accessibility              | Done    |
-| v2.4.0  | JWT Auth & Multi-currency       | Planned |
+| v2.4.0  | Security & Multi-currency       | Done    |
 | v2.5.0  | Analytics & Charts              | Planned |
 | v2.6.0  | Multi-user support              | Planned |
 

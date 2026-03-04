@@ -4,17 +4,6 @@ Planned features and improvements for SubTracker.
 
 ## v2.3.0 — UI & Accessibility
 
-## v2.3.0 — UI & Accessibility
-
-| Feature                       | Description                                                  |
-| ----------------------------- | ------------------------------------------------------------ |
-| Swipe action hints            | Visual indication of available swipe actions on mobile       |
-| Skeleton loading              | Placeholder loading state while fetching subscriptions       |
-| Semantics & accessibility     | Screen reader support and semantic labels throughout the app |
-| Reposition "Add Subscription" | Move FAB/button to a more ergonomic position on desktop      |
-| Bottom sheets → PopupMenu     | Replace bottom sheets with PopupMenu on desktop              |
-| Improved tablet layout        | Better use of screen real estate on tablet breakpoint        |
-| Keyboard shortcuts            | Keyboard navigation and shortcuts for desktop users          |
 | Feature                       | Description                                                  |
 | ----------------------------- | ------------------------------------------------------------ |
 | Swipe action hints            | Visual indication of available swipe actions on mobile       |
@@ -42,20 +31,9 @@ Planned features and improvements for SubTracker.
 | Spending by category | Pie chart visualization with fl_chart     |
 | Monthly trends       | Line chart showing spending over time     |
 | Statistics screen    | Averages, trends, most expensive category |
-| Feature              | Description                               |
-| -------------------- | ----------------------------------------- |
-| Spending by category | Pie chart visualization with fl_chart     |
-| Monthly trends       | Line chart showing spending over time     |
-| Statistics screen    | Averages, trends, most expensive category |
 
 ## v2.6.0 — Multi-user
 
-## v2.6.0 — Multi-user
-
-| Feature           | Description                             |
-| ----------------- | --------------------------------------- |
-| User registration | Create account with email/password      |
-| Data isolation    | Each user sees only their subscriptions |
 | Feature           | Description                             |
 | ----------------- | --------------------------------------- |
 | User registration | Create account with email/password      |
@@ -63,14 +41,6 @@ Planned features and improvements for SubTracker.
 
 ## Future Ideas
 
-| Feature                   | Description                               |
-| ------------------------- | ----------------------------------------- |
-| OIDC support              | Login with Google, Apple, Microsoft, etc. |
-| Native mobile app         | Flutter iOS/Android build                 |
-| Native push notifications | Firebase Cloud Messaging                  |
-| Calendar integration      | Sync billing dates with calendar          |
-| Custom categories         | User-defined categories with icons        |
-| Receipt attachments       | Upload invoices/receipts per subscription |
 | Feature                   | Description                               |
 | ------------------------- | ----------------------------------------- |
 | OIDC support              | Login with Google, Apple, Microsoft, etc. |

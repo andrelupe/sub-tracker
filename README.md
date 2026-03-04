@@ -186,6 +186,25 @@ All endpoints (except `/health` and `/swagger`) are protected by the `X-Api-Key`
 
 ## Docker
 
+### Environment Variables
+
+The all-in-one Docker image accepts the following environment variables:
+
+| Variable | Required | Default | Description |
+| -------- | -------- | ------- | ----------- |
+| `ConnectionStrings__Default` | Yes | — | SQLite connection string (e.g., `Data Source=/data/subtracker.db`) |
+| `ApiKey` | No | _(empty)_ | API key for backend endpoint protection. When set, all API requests must include the `X-Api-Key` header. Leave empty to disable |
+| `SUBTRACKER_API_KEY` | No | _(empty)_ | API key injected into the Flutter frontend at container startup. **Must match `ApiKey`** so the frontend can authenticate with the backend |
+| `Pushover__ApiToken` | No | _(empty)_ | Pushover application API token for push notifications |
+| `Pushover__UserKey` | No | _(empty)_ | Pushover user key for push notifications |
+
+> **Important:** When using API key authentication, you must set **both** `ApiKey` (backend) and `SUBTRACKER_API_KEY` (frontend) to the same value. `ApiKey` protects the API endpoints; `SUBTRACKER_API_KEY` is injected into the Flutter `.env` asset at runtime so the frontend can send the key in every request.
+
+Generate a secure key with:
+```bash
+openssl rand -base64 32
+```
+
 ### All-in-One (Frontend + API)
 
 ```bash
@@ -198,16 +217,6 @@ docker run -d \
 
 Open `http://localhost` to access the app.
 
-### API Only
-
-```bash
-docker run -d \
-  -p 5080:8080 \
-  -v subtracker-data:/data \
-  -e ConnectionStrings__Default="Data Source=/data/subtracker.db" \
-  andrelppereira/subtracker-api:latest
-```
-
 ### With API Key Authentication
 
 ```bash
@@ -216,10 +225,9 @@ docker run -d \
   -v subtracker-data:/data \
   -e ConnectionStrings__Default="Data Source=/data/subtracker.db" \
   -e ApiKey=your-secret-api-key \
+  -e SUBTRACKER_API_KEY=your-secret-api-key \
   andrelppereira/subtracker:latest
 ```
-
-> When `ApiKey` is set, all API requests must include the `X-Api-Key` header. The `/health` and `/swagger` endpoints are excluded. Leave empty to disable authentication.
 
 ### With Pushover Notifications
 
@@ -233,6 +241,30 @@ docker run -d \
   andrelppereira/subtracker:latest
 ```
 
+### Full Example (all options)
+
+```bash
+docker run -d \
+  -p 80:80 \
+  -v subtracker-data:/data \
+  -e ConnectionStrings__Default="Data Source=/data/subtracker.db" \
+  -e ApiKey=your-secret-api-key \
+  -e SUBTRACKER_API_KEY=your-secret-api-key \
+  -e Pushover__ApiToken=your_token \
+  -e Pushover__UserKey=your_key \
+  andrelppereira/subtracker:latest
+```
+
+### API Only
+
+```bash
+docker run -d \
+  -p 5080:8080 \
+  -v subtracker-data:/data \
+  -e ConnectionStrings__Default="Data Source=/data/subtracker.db" \
+  andrelppereira/subtracker-api:latest
+```
+
 ### Build locally
 
 ```bash
@@ -244,12 +276,23 @@ docker-compose up -d
 
 ### Frontend (.env)
 
+For local development (without Docker), create a `.env` file from the template:
+
+```bash
+cp .env.example .env
+```
+
 ```env
 API_BASE_URL=http://localhost:5270/api
 API_KEY=dev-test-key-12345
 ```
 
-The `API_KEY` is sent as an `X-Api-Key` header on every request. Leave empty if the backend has no API key configured.
+| Variable | Description |
+| -------- | ----------- |
+| `API_BASE_URL` | Backend API URL |
+| `API_KEY` | Sent as `X-Api-Key` header on every request. Leave empty if the backend has no API key configured |
+
+> In Docker, these values are generated automatically by `docker/start.sh` from the environment variables `API_BASE_URL` (default: `/api`) and `SUBTRACKER_API_KEY`.
 
 ### Backend (appsettings.json)
 
@@ -266,10 +309,7 @@ The `API_KEY` is sent as an `X-Api-Key` header on every request. Leave empty if 
 }
 ```
 
-- **ApiKey**: When set, all API endpoints require the `X-Api-Key` header. Leave empty to disable authentication. Generate a secure key with:
-  ```bash
-  openssl rand -base64 32
-  ```
+- **ApiKey**: When set, all API endpoints require the `X-Api-Key` header. Leave empty to disable authentication.
 - **Pushover**: Optional. Without valid credentials, the background job runs but notifications are silently skipped.
 - **Exchange rates**: Fetched automatically from the [Frankfurter API](https://api.frankfurter.dev) every 6 hours. No configuration needed.
 

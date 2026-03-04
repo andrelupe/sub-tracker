@@ -2,7 +2,7 @@
 
 Planned features and improvements for SubTracker.
 
-## v2.3.0 — UI & Accessibility
+## v2.3.0 — UI & Accessibility (Done)
 
 | Feature                       | Description                                                  |
 | ----------------------------- | ------------------------------------------------------------ |
@@ -24,13 +24,17 @@ Planned features and improvements for SubTracker.
 | User settings API      | `GET/PUT /api/settings` for persisting base currency preference    |
 | Exchange rates API     | `GET /api/exchange-rates` with background refresh every 6 hours    |
 
-## v2.5.0 — Analytics & Insights
+## v2.5.0 — Analytics & Insights (Done)
 
-| Feature              | Description                               |
-| -------------------- | ----------------------------------------- |
-| Spending by category | Pie chart visualization with fl_chart     |
-| Monthly trends       | Line chart showing spending over time     |
-| Statistics screen    | Averages, trends, most expensive category |
+| Feature              | Description                                                             |
+| -------------------- | ----------------------------------------------------------------------- |
+| Permanent navigation | NavigationBar (mobile) + NavigationRail (desktop) with 3 destinations   |
+| Spending by category | Donut chart visualization with fl_chart, legend, and touch interactions |
+| Monthly trends       | Line chart showing spending over configurable period (3/6/12 months)    |
+| Statistics cards     | KPIs: monthly/yearly totals, most expensive subscription, top category  |
+| Period selector      | SegmentedButton to filter charts by 3, 6, or 12 months                  |
+| Responsive analytics | Mobile full-width, tablet centered (700px), desktop 2-column layout     |
+| Accessibility        | Semantics on charts, tooltips on cards, accessible labels on controls   |
 
 ## v2.6.0 — Multi-user
 

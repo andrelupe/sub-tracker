@@ -78,11 +78,17 @@ lib/
 │   ├── constants/           # App constants + env config
 │   ├── extensions/          # DateTime extension methods
 │   ├── providers/           # API service Riverpod providers
-│   ├── router/              # GoRouter configuration
+│   ├── router/              # GoRouter configuration (StatefulShellRoute)
 │   ├── services/            # Generic HTTP API client
-│   └── theme/               # Material 3 theming
+│   ├── theme/               # Material 3 theming
+│   └── widgets/             # ScaffoldWithNavigation, ResponsiveLayout, etc.
 └── features/
-    └── subscriptions/       # Feature module
+    ├── analytics/           # Analytics & Insights feature
+    │   ├── models/          # CategorySpending, MonthlySpending, AnalyticsStats
+    │   ├── providers/       # Derived providers (spending, trend, stats, period)
+    │   ├── screens/         # AnalyticsScreen (responsive layouts)
+    │   └── widgets/         # CategoryChart, MonthlyTrendChart, StatisticsCards, PeriodSelector
+    └── subscriptions/       # Subscription management feature
         ├── models/          # Data models (Subscription, BillingCycle, Category)
         ├── providers/       # Async Riverpod state management
         ├── screens/         # Full-screen widgets

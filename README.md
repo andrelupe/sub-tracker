@@ -38,6 +38,8 @@ A full-stack subscription management app built with **Flutter** and **.NET 10**.
 - **Subscription tracking** -- manage name, amount, currency (EUR/USD/GBP), billing cycle, category, start date, and URL
 - **Multi-currency support** -- set a base currency (EUR/USD/GBP) and see converted totals; exchange rates fetched from Frankfurter API with 24h cache
 - **Spending overview** -- monthly and yearly totals converted to your base currency, normalized across billing cycles
+- **Analytics dashboard** -- spending by category donut chart, monthly trend line chart, and KPI statistics cards with configurable period (3/6/12 months)
+- **Permanent navigation** -- NavigationBar (mobile/tablet) + NavigationRail (desktop) with Home, Analytics, and Settings destinations
 - **Due soon alerts** -- visual indicators for subscriptions due within a configurable window (0-30 days)
 - **Push notifications** -- automatic Pushover alerts for upcoming bills via a background job
 - **API key authentication** -- optional `X-Api-Key` header protection for all API endpoints
@@ -79,10 +81,16 @@ sub-tracker/
 │   │   ├── constants/               # App constants + env config
 │   │   ├── extensions/              # DateTime extension methods
 │   │   ├── providers/               # API service Riverpod providers
-│   │   ├── router/                  # GoRouter configuration
+│   │   ├── router/                  # GoRouter configuration (StatefulShellRoute)
 │   │   ├── services/                # Generic HTTP API client
-│   │   └── theme/                   # Material 3 theming (light + dark)
+│   │   ├── theme/                   # Material 3 theming (light + dark)
+│   │   └── widgets/                 # ScaffoldWithNavigation, ResponsiveLayout, etc.
 │   ├── features/
+│   │   ├── analytics/
+│   │   │   ├── models/              # CategorySpending, MonthlySpending, AnalyticsStats
+│   │   │   ├── providers/           # Derived providers (spending, trend, stats, period)
+│   │   │   ├── screens/             # AnalyticsScreen (responsive mobile/tablet/desktop)
+│   │   │   └── widgets/             # CategoryChart, MonthlyTrendChart, StatisticsCards, PeriodSelector
 │   │   ├── exchange_rates/
 │   │   │   ├── models/              # ExchangeRate model
 │   │   │   ├── providers/           # ExchangeRatesNotifier (keepAlive, Frankfurter API)
@@ -292,7 +300,7 @@ cd api && dotnet test
 | v2.2.2  | UI Polish & Desktop UX          | Done    |
 | v2.3.0  | UI & Accessibility              | Done    |
 | v2.4.0  | Security & Multi-currency       | Done    |
-| v2.5.0  | Analytics & Charts              | Planned |
+| v2.5.0  | Analytics & Charts              | Done    |
 | v2.6.0  | Multi-user support              | Planned |
 
 See [ROADMAP.md](ROADMAP.md) for details.

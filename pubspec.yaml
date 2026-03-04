@@ -25,6 +25,9 @@ dependencies:
   flutter_slidable: ^3.0.1
   google_fonts: ^6.1.0
 
+  # Charts
+  fl_chart: ^1.1.1
+
   # HTTP
   http: ^1.2.0
   flutter_dotenv: ^6.0.0

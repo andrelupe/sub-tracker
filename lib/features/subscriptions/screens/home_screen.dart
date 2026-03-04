@@ -384,11 +384,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     onPressed: () =>
                         ref.invalidate(subscriptionsNotifierProvider),
                   ),
-                IconButton(
-                  icon: const Icon(Icons.settings),
-                  tooltip: 'Settings',
-                  onPressed: () => context.push(AppRoutes.settings),
-                ),
               ],
             ),
           ),

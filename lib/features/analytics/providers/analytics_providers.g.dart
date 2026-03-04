@@ -7,7 +7,7 @@ part of 'analytics_providers.dart';
 // **************************************************************************
 
 String _$spendingByCategoryHash() =>
-    r'62ff4b461f17f7808028221f6e32d2d3c72d9e01';
+    r'fd2cbb3dde70be8cbd4ff7739becc427f5eded71';
 
 /// Spending breakdown by category for active subscriptions.
 ///
@@ -33,7 +33,7 @@ String _$monthlyTrendHash() => r'd108c88218ea68b1261d44b0935493664a91f1df';
 /// Monthly spending trend for the selected period.
 ///
 /// For each month (from `period - 1` months ago to the current month),
-/// sums the monthly amount of active subscriptions whose [startDate]
+/// sums the monthly amount of active subscriptions whose `startDate`
 /// is before the end of that month, converted to base currency.
 ///
 /// Copied from [monthlyTrend].

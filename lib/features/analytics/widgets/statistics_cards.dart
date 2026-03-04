@@ -6,7 +6,9 @@ import 'package:subtracker/features/settings/models/user_settings.dart';
 /// Grid of 4 KPI cards showing analytics stats.
 ///
 /// In mobile/tablet mode renders a 2x2 grid.
-/// When [useColumn] is true (desktop sidebar), renders a vertical column.
+/// When [useColumn] is true (desktop sidebar), renders a vertical column
+/// where every card has the same height thanks to paired [IntrinsicHeight]
+/// rows.
 class StatisticsCards extends ConsumerWidget {
   const StatisticsCards({super.key, this.useColumn = false});
 
@@ -22,41 +24,61 @@ class StatisticsCards extends ConsumerWidget {
         icon: Icons.calendar_month,
         label: 'Monthly Total',
         value: '$symbol${stats.monthlyTotal.toStringAsFixed(2)}',
+        subtitle: '',
       ),
       _StatCard(
         icon: Icons.date_range,
         label: 'Yearly Total',
         value: '$symbol${stats.yearlyTotal.toStringAsFixed(2)}',
+        subtitle: '',
       ),
       _StatCard(
         icon: Icons.trending_up,
         label: 'Most Expensive',
         value: stats.mostExpensiveSubscription != null
-            ? '${stats.mostExpensiveSubscription!.name}\n'
-                '$symbol${stats.mostExpensiveAmount.toStringAsFixed(2)}'
+            ? stats.mostExpensiveSubscription!.name
             : '\u2014',
+        subtitle: stats.mostExpensiveSubscription != null
+            ? '$symbol${stats.mostExpensiveAmount.toStringAsFixed(2)}'
+            : '',
       ),
       _StatCard(
         icon: Icons.category,
         label: 'Top Category',
         value: stats.topCategory != null
-            ? '${stats.topCategory!.category.label}\n'
-                '$symbol${stats.topCategory!.monthlyAmount.toStringAsFixed(2)}'
+            ? stats.topCategory!.category.label
             : '\u2014',
+        subtitle: stats.topCategory != null
+            ? '$symbol${stats.topCategory!.monthlyAmount.toStringAsFixed(2)}'
+            : '',
       ),
     ];
 
     if (useColumn) {
-      return Column(
-        children: cards
-            .map(
-              (card) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: card,
+      // Pair cards in IntrinsicHeight rows so each pair shares the same
+      // height (the tallest of the two). With 4 cards this gives 2 rows.
+      final rows = <Widget>[];
+      for (var i = 0; i < cards.length; i += 2) {
+        final end = (i + 2).clamp(0, cards.length);
+        final pair = cards.sublist(i, end);
+        rows.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (var j = 0; j < pair.length; j++) ...[
+                    if (j > 0) const SizedBox(width: 12),
+                    Expanded(child: pair[j]),
+                  ],
+                ],
               ),
-            )
-            .toList(),
-      );
+            ),
+          ),
+        );
+      }
+      return Column(children: rows);
     }
 
     return GridView.count(
@@ -76,11 +98,15 @@ class _StatCard extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
+    required this.subtitle,
   });
 
   final IconData icon;
   final String label;
   final String value;
+  final String subtitle;
+
+  String get _semanticsValue => subtitle.isEmpty ? value : '$value $subtitle';
 
   @override
   Widget build(BuildContext context) {
@@ -88,9 +114,9 @@ class _StatCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Semantics(
-      label: '$label: $value',
+      label: '$label: $_semanticsValue',
       child: Tooltip(
-        message: '$label: $value',
+        message: '$label: $_semanticsValue',
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
@@ -99,7 +125,7 @@ class _StatCard extends StatelessWidget {
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icon, color: colorScheme.primary, size: 20),
               const SizedBox(height: 8),
@@ -108,9 +134,19 @@ class _StatCard extends StatelessWidget {
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
+              if (subtitle.isNotEmpty) ...[
+                Text(
+                  subtitle,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
               const SizedBox(height: 4),
               Text(
                 label,

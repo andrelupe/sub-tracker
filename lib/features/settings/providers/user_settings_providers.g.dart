@@ -43,7 +43,7 @@ final baseCurrencyProvider = AutoDisposeProvider<String>.internal(
 
 typedef BaseCurrencyRef = AutoDisposeProviderRef<String>;
 String _$userSettingsNotifierHash() =>
-    r'8ac7deacf9d2f7a9b2c699b7d901f38641776850';
+    r'370c51c628d71fb605b404b9d22fe8580a2a20e1';
 
 /// Manages user settings (base currency) with API persistence.
 ///

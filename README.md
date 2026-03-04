@@ -258,7 +258,10 @@ The `API_KEY` is sent as an `X-Api-Key` header on every request. Leave empty if 
 }
 ```
 
-- **ApiKey**: When set, all API endpoints require the `X-Api-Key` header. Leave empty to disable authentication.
+- **ApiKey**: When set, all API endpoints require the `X-Api-Key` header. Leave empty to disable authentication. Generate a secure key with:
+  ```bash
+  openssl rand -base64 32
+  ```
 - **Pushover**: Optional. Without valid credentials, the background job runs but notifications are silently skipped.
 - **Exchange rates**: Fetched automatically from the [Frankfurter API](https://api.frankfurter.dev) every 6 hours. No configuration needed.
 

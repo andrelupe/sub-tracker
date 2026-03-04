@@ -1,6 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:subtracker/core/providers/api_providers.dart';
-import 'package:subtracker/features/exchange_rates/providers/exchange_rate_providers.dart';
 import 'package:subtracker/features/settings/models/user_settings.dart';
 import 'package:subtracker/features/settings/services/settings_api_service.dart';
 
@@ -27,8 +26,6 @@ class UserSettingsNotifier extends _$UserSettingsNotifier {
     final service = ref.read(settingsApiServiceProvider);
     await service.updateBaseCurrency(currency);
 
-    // Refresh exchange rates for the new base currency
-    ref.invalidate(exchangeRatesNotifierProvider);
     ref.invalidateSelf();
     await future;
   }

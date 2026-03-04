@@ -27,12 +27,12 @@ final exchangeRateApiServiceProvider =
 typedef ExchangeRateApiServiceRef
     = AutoDisposeProviderRef<ExchangeRateApiService>;
 String _$exchangeRatesNotifierHash() =>
-    r'7b25d6bd8d36e29f9e0a72c9205f7d18f576dbb2';
+    r'f79d22dd6da656fa237a1089b67a57c6951511e4';
 
-/// Fetches and caches exchange rates for EUR base currency.
+/// Fetches and caches exchange rates for the user's base currency.
 ///
 /// Rates are kept alive to avoid refetching on every screen transition.
-/// Invalidate manually after changing the base currency in settings.
+/// Automatically rebuilds when the base currency changes.
 ///
 /// Copied from [ExchangeRatesNotifier].
 @ProviderFor(ExchangeRatesNotifier)

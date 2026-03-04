@@ -14,13 +14,15 @@ Planned features and improvements for SubTracker.
 | Improved tablet layout        | Better use of screen real estate on tablet breakpoint        |
 | Keyboard shortcuts            | Keyboard navigation and shortcuts for desktop users          |
 
-## v2.4.0 — Security & Multi-currency
+## v2.4.0 — Security & Multi-currency (Done)
 
-| Feature               | Description                                |
-| --------------------- | ------------------------------------------ |
-| JWT Authentication    | Login with tokens, protected API endpoints |
-| Currency conversion   | External exchange rate API integration     |
-| Base currency setting | Totals converted to preferred currency     |
+| Feature               | Description                                                        |
+| --------------------- | ------------------------------------------------------------------ |
+| API key authentication | Optional `X-Api-Key` header protection for all API endpoints      |
+| Currency conversion   | Frankfurter API integration with 24h DB cache and stale fallback   |
+| Base currency setting | EUR/USD/GBP selector; totals and list tiles show converted amounts |
+| User settings API     | `GET/PUT /api/settings` for persisting base currency preference    |
+| Exchange rates API    | `GET /api/exchange-rates` with background refresh every 6 hours    |
 
 ## v2.5.0 — Analytics & Insights
 

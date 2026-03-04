@@ -4,6 +4,10 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:subtracker/core/extensions/datetime_extensions.dart';
 import 'package:subtracker/core/widgets/confirm_delete_dialog.dart';
 import 'package:subtracker/core/widgets/responsive_layout.dart';
+import 'package:subtracker/features/exchange_rates/convert_amount.dart';
+import 'package:subtracker/features/exchange_rates/providers/exchange_rate_providers.dart';
+import 'package:subtracker/features/settings/models/user_settings.dart';
+import 'package:subtracker/features/settings/providers/user_settings_providers.dart';
 import 'package:subtracker/features/subscriptions/models/subscription.dart';
 import 'package:subtracker/features/subscriptions/providers/subscription_providers.dart';
 
@@ -259,6 +263,25 @@ class _SubscriptionListTileState extends ConsumerState<SubscriptionListTile> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final sub = widget.subscription;
+    final baseCurrency = ref.watch(baseCurrencyProvider);
+    final ratesAsync = ref.watch(exchangeRatesNotifierProvider);
+
+    // Calculate converted amount if currencies differ
+    String? convertedText;
+    if (sub.currency != baseCurrency) {
+      final rates = ratesAsync.valueOrNull;
+      if (rates != null) {
+        final converted = convertAmount(
+          amount: sub.amount,
+          fromCurrency: sub.currency,
+          toCurrency: baseCurrency,
+          ratesBaseCurrency: rates.baseCurrency,
+          rates: rates.rates,
+        );
+        final baseSymbol = UserSettings.currencySymbol(baseCurrency);
+        convertedText = '~$baseSymbol${converted.toStringAsFixed(2)}';
+      }
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -271,6 +294,14 @@ class _SubscriptionListTileState extends ConsumerState<SubscriptionListTile> {
           ),
         ),
         const SizedBox(height: 4),
+        if (convertedText != null)
+          Text(
+            convertedText,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+              fontStyle: FontStyle.italic,
+            ),
+          ),
         Text(
           sub.billingCycle.label,
           style: theme.textTheme.bodySmall?.copyWith(

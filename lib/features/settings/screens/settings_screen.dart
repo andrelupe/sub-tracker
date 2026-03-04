@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:subtracker/core/widgets/centered_content.dart';
 import 'package:subtracker/core/widgets/responsive_layout.dart';
 import 'package:subtracker/features/settings/widgets/about_section.dart';
+import 'package:subtracker/features/settings/widgets/currency_selector.dart';
 import 'package:subtracker/features/settings/widgets/export_button.dart';
 import 'package:subtracker/features/settings/widgets/import_button.dart';
 import 'package:subtracker/features/settings/widgets/theme_selector.dart';
@@ -45,6 +46,8 @@ class SettingsScreen extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(vertical: 16),
           children: [
             const ThemeSelector(),
+            const SizedBox(height: 24),
+            const CurrencySelector(),
             const SizedBox(height: 24),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

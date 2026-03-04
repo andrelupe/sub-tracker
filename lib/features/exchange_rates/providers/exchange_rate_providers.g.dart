@@ -1,0 +1,52 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'exchange_rate_providers.dart';
+
+// **************************************************************************
+// RiverpodGenerator
+// **************************************************************************
+
+String _$exchangeRateApiServiceHash() =>
+    r'4208eadf79d661cf3f213e0c610a357a84310786';
+
+/// Provides the [ExchangeRateApiService] instance.
+///
+/// Copied from [exchangeRateApiService].
+@ProviderFor(exchangeRateApiService)
+final exchangeRateApiServiceProvider =
+    AutoDisposeProvider<ExchangeRateApiService>.internal(
+  exchangeRateApiService,
+  name: r'exchangeRateApiServiceProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$exchangeRateApiServiceHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef ExchangeRateApiServiceRef
+    = AutoDisposeProviderRef<ExchangeRateApiService>;
+String _$exchangeRatesNotifierHash() =>
+    r'7b25d6bd8d36e29f9e0a72c9205f7d18f576dbb2';
+
+/// Fetches and caches exchange rates for EUR base currency.
+///
+/// Rates are kept alive to avoid refetching on every screen transition.
+/// Invalidate manually after changing the base currency in settings.
+///
+/// Copied from [ExchangeRatesNotifier].
+@ProviderFor(ExchangeRatesNotifier)
+final exchangeRatesNotifierProvider =
+    AsyncNotifierProvider<ExchangeRatesNotifier, ExchangeRate>.internal(
+  ExchangeRatesNotifier.new,
+  name: r'exchangeRatesNotifierProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$exchangeRatesNotifierHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$ExchangeRatesNotifier = AsyncNotifier<ExchangeRate>;
+// ignore_for_file: type=lint
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

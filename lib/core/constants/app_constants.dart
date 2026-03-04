@@ -4,7 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 abstract final class AppConstants {
   /// Current application version.
   /// This should match the version in pubspec.yaml.
-  static const String version = '2.3.0';
+  static const String version = '2.4.0';
 
   /// Application name.
   static const String appName = 'SubTracker';
@@ -12,4 +12,8 @@ abstract final class AppConstants {
   /// Base URL for the API, loaded from the `.env` file.
   static String get apiBaseUrl =>
       dotenv.env['API_BASE_URL'] ?? 'http://localhost:5270/api';
+
+  /// Optional API key for authentication, loaded from the `.env` file.
+  /// When empty, no authentication header is sent.
+  static String get apiKey => dotenv.env['API_KEY'] ?? '';
 }

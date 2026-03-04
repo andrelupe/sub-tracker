@@ -216,6 +216,38 @@ class _SubscriptionByIdProviderElement
   String get id => (origin as SubscriptionByIdProvider).id;
 }
 
+String _$convertedMonthlyTotalHash() =>
+    r'7836d6b764b44e827b929d56a3acb705741828bf';
+
+/// See also [convertedMonthlyTotal].
+@ProviderFor(convertedMonthlyTotal)
+final convertedMonthlyTotalProvider = AutoDisposeProvider<double>.internal(
+  convertedMonthlyTotal,
+  name: r'convertedMonthlyTotalProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$convertedMonthlyTotalHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef ConvertedMonthlyTotalRef = AutoDisposeProviderRef<double>;
+String _$convertedYearlyTotalHash() =>
+    r'7ad635da8decaf8dd065b99acfcd32e076480efc';
+
+/// See also [convertedYearlyTotal].
+@ProviderFor(convertedYearlyTotal)
+final convertedYearlyTotalProvider = AutoDisposeProvider<double>.internal(
+  convertedYearlyTotal,
+  name: r'convertedYearlyTotalProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$convertedYearlyTotalHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef ConvertedYearlyTotalRef = AutoDisposeProviderRef<double>;
 String _$filteredSubscriptionsHash() =>
     r'634e8ccfdc5a6246ee2e98d3741fbc0e8302975a';
 

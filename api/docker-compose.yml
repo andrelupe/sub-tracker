@@ -11,6 +11,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__Default=Data Source=/data/subtracker.db
+      - ApiKey=${API_KEY:-}
       - Pushover__ApiToken=${PUSHOVER_API_TOKEN:-}
       - Pushover__UserKey=${PUSHOVER_USER_KEY:-}
     restart: unless-stopped

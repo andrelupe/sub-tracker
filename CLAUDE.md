@@ -58,11 +58,15 @@ All data is managed by the API. The Flutter app has **no local storage** — it 
 
 Uses **Riverpod 2.x with code generation** and **async providers** for API integration:
 
-1. **ApiService** (`lib/core/services/api_service.dart`): Generic HTTP client with error handling
+1. **ApiService** (`lib/core/services/api_service.dart`): Generic HTTP client with API key auth (`X-Api-Key` header) and error handling
 2. **SubscriptionApiService** (`lib/features/subscriptions/services/`): Subscription-specific API methods
 3. **SubscriptionsNotifier** (AsyncNotifier): Manages subscription state with API calls for all CRUD operations
-4. **Derived Providers**: Compute monthly/yearly totals, due soon list, filtered results from async state
+4. **Derived Providers**: Compute monthly/yearly totals (with currency conversion), due soon list, filtered results from async state
 5. **Filter/Sort Providers**: Client-side search, category filter, and sorting
+6. **ExchangeRatesNotifier** (keepAlive): Fetches and caches exchange rates from backend (Frankfurter API, 24h cache)
+7. **UserSettingsNotifier** (keepAlive): Manages base currency preference (EUR/USD/GBP)
+8. **baseCurrencyProvider**: Derived provider for quick access to current base currency (fallback EUR)
+9. **convertedMonthlyTotalProvider / convertedYearlyTotalProvider**: Convert totals to user's base currency using exchange rates
 
 **Key pattern**: The `SubscriptionsNotifier` extends `AsyncNotifier<List<Subscription>>`. All mutations (`create`, `updateSubscription`, `delete`, `toggleActive`) are async and call the API, then refresh state via `ref.invalidateSelf()`.
 
@@ -74,16 +78,24 @@ Uses **FastEndpoints** (not controllers) with **Vertical Slice Architecture**:
 - Domain model (`Subscription`) uses a rich domain pattern with private setters and factory methods
 - `Subscription.Create()` static factory generates IDs, calculates next billing date, sets timestamps
 - `DatabaseSeeder` seeds 18 subscriptions in Development mode only (12 active, 3 inactive, 3 notification test scenarios)
+- **ApiKeyMiddleware** (`Common/Middleware/`): Validates `X-Api-Key` header, bypasses `/health` and `/swagger`. Disabled when `ApiKey` is empty in config
+- **ExchangeRateService** (`Features/ExchangeRates/`): Frankfurter API client with DB cache (24h), transitive conversion via EUR, stale fallback
+- **RefreshRatesBackgroundJob**: Refreshes exchange rates every 6 hours
+- **UserSettings** (`Features/Settings/`): Stores base currency per user with default EUR
 
 ### Environment Configuration
 
-The API base URL is loaded at runtime from a `.env` file using `flutter_dotenv`:
+Configuration is loaded at runtime from a `.env` file using `flutter_dotenv`:
 
 ```env
 API_BASE_URL=http://localhost:5270/api
+API_KEY=dev-test-key-12345
 ```
 
-This is read via `AppConstants.apiBaseUrl` in `lib/core/constants/app_constants.dart`. The `.env` file is declared as a Flutter asset in `pubspec.yaml` and loaded in `main.dart` before app startup.
+- `AppConstants.apiBaseUrl` — API base URL
+- `AppConstants.apiKey` — API key sent as `X-Api-Key` header (empty = no auth)
+
+The `.env` file is declared as a Flutter asset in `pubspec.yaml` and loaded in `main.dart` before app startup.
 
 ### Code Generation
 
@@ -179,14 +191,20 @@ lib/features/your_feature/
 
 ## Testing
 
-### Flutter Tests (51 tests)
-- Models: Billing calculations, date logic, computed properties
+### Flutter Tests (87 tests)
+- Models: Billing calculations, date logic, computed properties, exchange rates, user settings
 - Providers: Filter/sort logic, search, category filtering
 - Extensions: DateTime manipulation
+- Services: API key auth (header injection, 401 handling)
+- Widgets: Currency selector
+- Exchange rates: Currency conversion (direct, reverse, cross, fallback)
 
-### .NET Tests (42 tests)
+### .NET Tests (75 tests)
 - Domain: Subscription creation, update, IsDueSoon, next billing date calculation, notification deduplication (NeedsNotification, MarkNotified, HasPastBillingDate, AdvanceNextBillingDate)
 - Import: Validation, atomic import, all billing cycles/currencies/categories
+- Middleware: API key authentication (valid/invalid/missing key, bypass health/swagger, disabled when empty)
+- Exchange rates: ExchangeRate domain, FrankfurterClient, ExchangeRateService (caching, stale fallback)
+- Settings: UserSettings domain, GET/PUT endpoints
 
 Run tests before committing changes:
 ```bash

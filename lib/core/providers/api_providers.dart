@@ -4,7 +4,10 @@ import 'package:subtracker/core/services/api_service.dart';
 import 'package:subtracker/features/subscriptions/services/subscription_api_service.dart';
 
 final apiServiceProvider = Provider<ApiService>((ref) {
-  return ApiService(baseUrl: AppConstants.apiBaseUrl);
+  return ApiService(
+    baseUrl: AppConstants.apiBaseUrl,
+    apiKey: AppConstants.apiKey,
+  );
 });
 
 final subscriptionApiServiceProvider = Provider<SubscriptionApiService>((ref) {

@@ -1,9 +1,12 @@
 using FastEndpoints;
+using Microsoft.Extensions.Http.Resilience;
 using FastEndpoints.Swagger;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using SubTracker.Api.Common;
 using SubTracker.Api.Database;
+using SubTracker.Api.Common.Middleware;
+using SubTracker.Api.Features.ExchangeRates;
 using SubTracker.Api.Features.Notifications;
 
 // Configurar Serilog bootstrap logger
@@ -45,8 +48,17 @@ try
     builder.Services.AddHttpClient<INotificationService, PushoverNotificationService>(client =>
         client.BaseAddress = new Uri("https://api.pushover.net/1/messages.json"));
 
-    // Background Job
+    // Exchange Rates
+    builder.Services.AddHttpClient<FrankfurterClient>(client =>
+    {
+        client.BaseAddress = new Uri("https://api.frankfurter.dev/v1/");
+        client.Timeout = TimeSpan.FromSeconds(10);
+    }).AddStandardResilienceHandler();
+    builder.Services.AddSingleton<IExchangeRateService, ExchangeRateService>();
+
+    // Background Jobs
     builder.Services.AddHostedService<CheckDueSubscriptionsJob>();
+    builder.Services.AddHostedService<RefreshRatesBackgroundJob>();
 
     // CORS
     builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
@@ -67,6 +79,7 @@ try
     }
 
     app.UseCors();
+    app.UseMiddleware<ApiKeyMiddleware>();
     app.UseSerilogRequestLogging();
     app.UseFastEndpoints();
     app.UseSwaggerGen();
@@ -84,3 +97,6 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+// Required for WebApplicationFactory in integration tests
+public partial class Program;

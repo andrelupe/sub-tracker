@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:subtracker/core/widgets/centered_content.dart';
 import 'package:subtracker/features/settings/widgets/about_section.dart';
+import 'package:subtracker/features/settings/widgets/analytics_toggle.dart';
 import 'package:subtracker/features/settings/widgets/currency_selector.dart';
 import 'package:subtracker/features/settings/widgets/export_button.dart';
 import 'package:subtracker/features/settings/widgets/import_button.dart';
@@ -26,6 +27,8 @@ class SettingsScreen extends ConsumerWidget {
             const ThemeSelector(),
             const SizedBox(height: 24),
             const CurrencySelector(),
+            const SizedBox(height: 24),
+            const AnalyticsToggle(),
             const SizedBox(height: 24),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

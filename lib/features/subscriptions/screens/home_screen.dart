@@ -11,6 +11,7 @@ import 'package:subtracker/core/widgets/responsive_layout.dart';
 import 'package:subtracker/features/subscriptions/models/sort_option.dart';
 import 'package:subtracker/features/subscriptions/models/subscription.dart';
 import 'package:subtracker/features/subscriptions/providers/subscription_providers.dart';
+import 'package:subtracker/features/subscriptions/widgets/analytics_banner.dart';
 import 'package:subtracker/features/subscriptions/widgets/filter_sort_bar.dart';
 import 'package:subtracker/features/subscriptions/widgets/monthly_summary_card.dart';
 import 'package:subtracker/features/subscriptions/widgets/subscription_list_tile.dart';
@@ -154,6 +155,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          const AnalyticsBanner(),
           const MonthlySummaryCard(),
           const SizedBox(height: 16),
           _buildSearchBar(searchQuery),
@@ -198,6 +200,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               width: 280,
               child: ListView(
                 children: [
+                  const AnalyticsBanner(),
                   const MonthlySummaryCard(),
                   const SizedBox(height: 12),
                   _buildSearchBar(searchQuery),
@@ -277,6 +280,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     width: 320,
                     child: ListView(
                       children: [
+                        const AnalyticsBanner(),
                         const MonthlySummaryCard(),
                         const SizedBox(height: 16),
                         _buildSearchBar(searchQuery),

@@ -38,6 +38,12 @@ A full-stack subscription management app built with **Flutter** and **.NET 10**.
     </td>
   </tr>
   <tr>
+    <td colspan="3" align="center">
+      <img src="screenshots/analytics-web-light.png" alt="Analytics — desktop light mode" width="700" />
+      <br /><sub><b>Analytics — Desktop (Light)</b></sub>
+    </td>
+  </tr>
+  <tr>
     <td align="center">
       <img src="screenshots/analytics-mobile-dark-1.png" alt="Analytics — mobile dark mode" width="250" height="549" />
       <br /><sub><b>Analytics — Mobile (Dark)</b></sub>
@@ -45,10 +51,6 @@ A full-stack subscription management app built with **Flutter** and **.NET 10**.
     <td align="center">
       <img src="screenshots/analytics-mobile-light-1.png" alt="Analytics — mobile light mode" width="250" height="549" />
       <br /><sub><b>Analytics — Mobile (Light)</b></sub>
-    </td>
-    <td align="center">
-      <img src="screenshots/analytics-web-light.png" alt="Analytics — desktop light mode" width="250" />
-      <br /><sub><b>Analytics — Desktop (Light)</b></sub>
     </td>
   </tr>
 </table>
@@ -58,7 +60,7 @@ A full-stack subscription management app built with **Flutter** and **.NET 10**.
 - **Subscription tracking** -- manage name, amount, currency (EUR/USD/GBP), billing cycle, category, start date, and URL
 - **Multi-currency support** -- set a base currency (EUR/USD/GBP) and see converted totals; exchange rates fetched from Frankfurter API with 24h cache
 - **Spending overview** -- monthly and yearly totals converted to your base currency, normalized across billing cycles
-- **Analytics dashboard** -- spending by category donut chart, monthly trend line chart, and KPI statistics cards with configurable period (3/6/12 months)
+- **Analytics dashboard** -- opt-in spending by category donut chart, monthly trend line chart, and KPI statistics cards with configurable period (3/6/12 months). Enable via Settings toggle; promotional banner on Home encourages adoption
 - **Permanent navigation** -- NavigationBar (mobile/tablet) + NavigationRail (desktop) with Home, Analytics, and Settings destinations
 - **Due soon alerts** -- visual indicators for subscriptions due within a configurable window (0-30 days)
 - **Push notifications** -- automatic Pushover alerts for upcoming bills via a background job
@@ -120,13 +122,13 @@ sub-tracker/
 │   │   │   ├── providers/           # UserSettingsNotifier, baseCurrencyProvider
 │   │   │   ├── screens/             # SettingsScreen
 │   │   │   ├── services/            # FileService, SettingsApiService
-│   │   │   └── widgets/             # ThemeSelector, CurrencySelector, ExportButton, ImportButton, AboutSection
+│   │   │   └── widgets/             # ThemeSelector, CurrencySelector, AnalyticsToggle, ExportButton, ImportButton, AboutSection
 │   │   └── subscriptions/
 │   │       ├── models/              # Subscription, BillingCycle, Category, SortOption
 │   │       ├── providers/           # Async Riverpod state management
 │   │       ├── screens/             # HomeScreen, SubscriptionFormScreen
 │   │       ├── services/            # Subscription API service
-│   │       └── widgets/             # ListTile, SummaryCard, FilterSortBar
+│   │       └── widgets/             # ListTile, SummaryCard, FilterSortBar, AnalyticsBanner
 │   └── main.dart
 │
 ├── api/                             # .NET backend

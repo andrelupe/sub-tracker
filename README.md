@@ -31,6 +31,26 @@ A full-stack subscription management app built with **Flutter** and **.NET 10**.
       <br /><sub><b>Settings — Light Mode</b></sub>
     </td>
   </tr>
+  <tr>
+    <td colspan="3" align="center">
+      <img src="screenshots/analytics-web-dark.png" alt="Analytics — desktop dark mode" width="700" />
+      <br /><sub><b>Analytics — Desktop (Dark Mode)</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="screenshots/analytics-mobile-dark-1.png" alt="Analytics — mobile dark mode" width="250" height="549" />
+      <br /><sub><b>Analytics — Mobile (Dark)</b></sub>
+    </td>
+    <td align="center">
+      <img src="screenshots/analytics-mobile-light-1.png" alt="Analytics — mobile light mode" width="250" height="549" />
+      <br /><sub><b>Analytics — Mobile (Light)</b></sub>
+    </td>
+    <td align="center">
+      <img src="screenshots/analytics-web-light.png" alt="Analytics — desktop light mode" width="250" />
+      <br /><sub><b>Analytics — Desktop (Light)</b></sub>
+    </td>
+  </tr>
 </table>
 
 ## Features
@@ -190,17 +210,18 @@ All endpoints (except `/health` and `/swagger`) are protected by the `X-Api-Key`
 
 The all-in-one Docker image accepts the following environment variables:
 
-| Variable | Required | Default | Description |
-| -------- | -------- | ------- | ----------- |
-| `ConnectionStrings__Default` | Yes | — | SQLite connection string (e.g., `Data Source=/data/subtracker.db`) |
-| `ApiKey` | No | _(empty)_ | API key for backend endpoint protection. When set, all API requests must include the `X-Api-Key` header. Leave empty to disable |
-| `SUBTRACKER_API_KEY` | No | _(empty)_ | API key injected into the Flutter frontend at container startup. **Must match `ApiKey`** so the frontend can authenticate with the backend |
-| `Pushover__ApiToken` | No | _(empty)_ | Pushover application API token for push notifications |
-| `Pushover__UserKey` | No | _(empty)_ | Pushover user key for push notifications |
+| Variable                     | Required | Default   | Description                                                                                                                                |
+| ---------------------------- | -------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ConnectionStrings__Default` | Yes      | —         | SQLite connection string (e.g., `Data Source=/data/subtracker.db`)                                                                         |
+| `ApiKey`                     | No       | _(empty)_ | API key for backend endpoint protection. When set, all API requests must include the `X-Api-Key` header. Leave empty to disable            |
+| `SUBTRACKER_API_KEY`         | No       | _(empty)_ | API key injected into the Flutter frontend at container startup. **Must match `ApiKey`** so the frontend can authenticate with the backend |
+| `Pushover__ApiToken`         | No       | _(empty)_ | Pushover application API token for push notifications                                                                                      |
+| `Pushover__UserKey`          | No       | _(empty)_ | Pushover user key for push notifications                                                                                                   |
 
 > **Important:** When using API key authentication, you must set **both** `ApiKey` (backend) and `SUBTRACKER_API_KEY` (frontend) to the same value. `ApiKey` protects the API endpoints; `SUBTRACKER_API_KEY` is injected into the Flutter `.env` asset at runtime so the frontend can send the key in every request.
 
 Generate a secure key with:
+
 ```bash
 openssl rand -base64 32
 ```
@@ -287,10 +308,10 @@ API_BASE_URL=http://localhost:5270/api
 API_KEY=dev-test-key-12345
 ```
 
-| Variable | Description |
-| -------- | ----------- |
-| `API_BASE_URL` | Backend API URL |
-| `API_KEY` | Sent as `X-Api-Key` header on every request. Leave empty if the backend has no API key configured |
+| Variable       | Description                                                                                       |
+| -------------- | ------------------------------------------------------------------------------------------------- |
+| `API_BASE_URL` | Backend API URL                                                                                   |
+| `API_KEY`      | Sent as `X-Api-Key` header on every request. Leave empty if the backend has no API key configured |
 
 > In Docker, these values are generated automatically by `docker/start.sh` from the environment variables `API_BASE_URL` (default: `/api`) and `SUBTRACKER_API_KEY`.
 

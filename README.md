@@ -31,6 +31,28 @@ A full-stack subscription management app built with **Flutter** and **.NET 10**.
       <br /><sub><b>Settings — Light Mode</b></sub>
     </td>
   </tr>
+  <tr>
+    <td colspan="3" align="center">
+      <img src="screenshots/analytics-web-dark.png" alt="Analytics — desktop dark mode" width="700" />
+      <br /><sub><b>Analytics — Desktop (Dark Mode)</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3" align="center">
+      <img src="screenshots/analytics-web-light.png" alt="Analytics — desktop light mode" width="700" />
+      <br /><sub><b>Analytics — Desktop (Light)</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="screenshots/analytics-mobile-dark-1.png" alt="Analytics — mobile dark mode" width="250" height="549" />
+      <br /><sub><b>Analytics — Mobile (Dark)</b></sub>
+    </td>
+    <td align="center">
+      <img src="screenshots/analytics-mobile-light-1.png" alt="Analytics — mobile light mode" width="250" height="549" />
+      <br /><sub><b>Analytics — Mobile (Light)</b></sub>
+    </td>
+  </tr>
 </table>
 
 ## Features
@@ -38,6 +60,8 @@ A full-stack subscription management app built with **Flutter** and **.NET 10**.
 - **Subscription tracking** -- manage name, amount, currency (EUR/USD/GBP), billing cycle, category, start date, and URL
 - **Multi-currency support** -- set a base currency (EUR/USD/GBP) and see converted totals; exchange rates fetched from Frankfurter API with 24h cache
 - **Spending overview** -- monthly and yearly totals converted to your base currency, normalized across billing cycles
+- **Analytics dashboard** -- opt-in spending by category donut chart, monthly trend line chart, and KPI statistics cards with configurable period (3/6/12 months). Enable via Settings toggle; promotional banner on Home encourages adoption
+- **Permanent navigation** -- NavigationBar (mobile/tablet) + NavigationRail (desktop) with Home, Analytics, and Settings destinations
 - **Due soon alerts** -- visual indicators for subscriptions due within a configurable window (0-30 days)
 - **Push notifications** -- automatic Pushover alerts for upcoming bills via a background job
 - **API key authentication** -- optional `X-Api-Key` header protection for all API endpoints
@@ -79,10 +103,16 @@ sub-tracker/
 │   │   ├── constants/               # App constants + env config
 │   │   ├── extensions/              # DateTime extension methods
 │   │   ├── providers/               # API service Riverpod providers
-│   │   ├── router/                  # GoRouter configuration
+│   │   ├── router/                  # GoRouter configuration (StatefulShellRoute)
 │   │   ├── services/                # Generic HTTP API client
-│   │   └── theme/                   # Material 3 theming (light + dark)
+│   │   ├── theme/                   # Material 3 theming (light + dark)
+│   │   └── widgets/                 # ScaffoldWithNavigation, ResponsiveLayout, etc.
 │   ├── features/
+│   │   ├── analytics/
+│   │   │   ├── models/              # CategorySpending, MonthlySpending, AnalyticsStats
+│   │   │   ├── providers/           # Derived providers (spending, trend, stats, period)
+│   │   │   ├── screens/             # AnalyticsScreen (responsive mobile/tablet/desktop)
+│   │   │   └── widgets/             # CategoryChart, MonthlyTrendChart, StatisticsCards, PeriodSelector
 │   │   ├── exchange_rates/
 │   │   │   ├── models/              # ExchangeRate model
 │   │   │   ├── providers/           # ExchangeRatesNotifier (keepAlive, Frankfurter API)
@@ -92,13 +122,13 @@ sub-tracker/
 │   │   │   ├── providers/           # UserSettingsNotifier, baseCurrencyProvider
 │   │   │   ├── screens/             # SettingsScreen
 │   │   │   ├── services/            # FileService, SettingsApiService
-│   │   │   └── widgets/             # ThemeSelector, CurrencySelector, ExportButton, ImportButton, AboutSection
+│   │   │   └── widgets/             # ThemeSelector, CurrencySelector, AnalyticsToggle, ExportButton, ImportButton, AboutSection
 │   │   └── subscriptions/
 │   │       ├── models/              # Subscription, BillingCycle, Category, SortOption
 │   │       ├── providers/           # Async Riverpod state management
 │   │       ├── screens/             # HomeScreen, SubscriptionFormScreen
 │   │       ├── services/            # Subscription API service
-│   │       └── widgets/             # ListTile, SummaryCard, FilterSortBar
+│   │       └── widgets/             # ListTile, SummaryCard, FilterSortBar, AnalyticsBanner
 │   └── main.dart
 │
 ├── api/                             # .NET backend
@@ -178,6 +208,26 @@ All endpoints (except `/health` and `/swagger`) are protected by the `X-Api-Key`
 
 ## Docker
 
+### Environment Variables
+
+The all-in-one Docker image accepts the following environment variables:
+
+| Variable                     | Required | Default   | Description                                                                                                                                |
+| ---------------------------- | -------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ConnectionStrings__Default` | Yes      | —         | SQLite connection string (e.g., `Data Source=/data/subtracker.db`)                                                                         |
+| `ApiKey`                     | No       | _(empty)_ | API key for backend endpoint protection. When set, all API requests must include the `X-Api-Key` header. Leave empty to disable            |
+| `SUBTRACKER_API_KEY`         | No       | _(empty)_ | API key injected into the Flutter frontend at container startup. **Must match `ApiKey`** so the frontend can authenticate with the backend |
+| `Pushover__ApiToken`         | No       | _(empty)_ | Pushover application API token for push notifications                                                                                      |
+| `Pushover__UserKey`          | No       | _(empty)_ | Pushover user key for push notifications                                                                                                   |
+
+> **Important:** When using API key authentication, you must set **both** `ApiKey` (backend) and `SUBTRACKER_API_KEY` (frontend) to the same value. `ApiKey` protects the API endpoints; `SUBTRACKER_API_KEY` is injected into the Flutter `.env` asset at runtime so the frontend can send the key in every request.
+
+Generate a secure key with:
+
+```bash
+openssl rand -base64 32
+```
+
 ### All-in-One (Frontend + API)
 
 ```bash
@@ -190,16 +240,6 @@ docker run -d \
 
 Open `http://localhost` to access the app.
 
-### API Only
-
-```bash
-docker run -d \
-  -p 5080:8080 \
-  -v subtracker-data:/data \
-  -e ConnectionStrings__Default="Data Source=/data/subtracker.db" \
-  andrelppereira/subtracker-api:latest
-```
-
 ### With API Key Authentication
 
 ```bash
@@ -208,10 +248,9 @@ docker run -d \
   -v subtracker-data:/data \
   -e ConnectionStrings__Default="Data Source=/data/subtracker.db" \
   -e ApiKey=your-secret-api-key \
+  -e SUBTRACKER_API_KEY=your-secret-api-key \
   andrelppereira/subtracker:latest
 ```
-
-> When `ApiKey` is set, all API requests must include the `X-Api-Key` header. The `/health` and `/swagger` endpoints are excluded. Leave empty to disable authentication.
 
 ### With Pushover Notifications
 
@@ -225,6 +264,30 @@ docker run -d \
   andrelppereira/subtracker:latest
 ```
 
+### Full Example (all options)
+
+```bash
+docker run -d \
+  -p 80:80 \
+  -v subtracker-data:/data \
+  -e ConnectionStrings__Default="Data Source=/data/subtracker.db" \
+  -e ApiKey=your-secret-api-key \
+  -e SUBTRACKER_API_KEY=your-secret-api-key \
+  -e Pushover__ApiToken=your_token \
+  -e Pushover__UserKey=your_key \
+  andrelppereira/subtracker:latest
+```
+
+### API Only
+
+```bash
+docker run -d \
+  -p 5080:8080 \
+  -v subtracker-data:/data \
+  -e ConnectionStrings__Default="Data Source=/data/subtracker.db" \
+  andrelppereira/subtracker-api:latest
+```
+
 ### Build locally
 
 ```bash
@@ -236,12 +299,23 @@ docker-compose up -d
 
 ### Frontend (.env)
 
+For local development (without Docker), create a `.env` file from the template:
+
+```bash
+cp .env.example .env
+```
+
 ```env
 API_BASE_URL=http://localhost:5270/api
 API_KEY=dev-test-key-12345
 ```
 
-The `API_KEY` is sent as an `X-Api-Key` header on every request. Leave empty if the backend has no API key configured.
+| Variable       | Description                                                                                       |
+| -------------- | ------------------------------------------------------------------------------------------------- |
+| `API_BASE_URL` | Backend API URL                                                                                   |
+| `API_KEY`      | Sent as `X-Api-Key` header on every request. Leave empty if the backend has no API key configured |
+
+> In Docker, these values are generated automatically by `docker/start.sh` from the environment variables `API_BASE_URL` (default: `/api`) and `SUBTRACKER_API_KEY`.
 
 ### Backend (appsettings.json)
 
@@ -258,10 +332,7 @@ The `API_KEY` is sent as an `X-Api-Key` header on every request. Leave empty if 
 }
 ```
 
-- **ApiKey**: When set, all API endpoints require the `X-Api-Key` header. Leave empty to disable authentication. Generate a secure key with:
-  ```bash
-  openssl rand -base64 32
-  ```
+- **ApiKey**: When set, all API endpoints require the `X-Api-Key` header. Leave empty to disable authentication.
 - **Pushover**: Optional. Without valid credentials, the background job runs but notifications are silently skipped.
 - **Exchange rates**: Fetched automatically from the [Frankfurter API](https://api.frankfurter.dev) every 6 hours. No configuration needed.
 
@@ -292,7 +363,7 @@ cd api && dotnet test
 | v2.2.2  | UI Polish & Desktop UX          | Done    |
 | v2.3.0  | UI & Accessibility              | Done    |
 | v2.4.0  | Security & Multi-currency       | Done    |
-| v2.5.0  | Analytics & Charts              | Planned |
+| v2.5.0  | Analytics & Charts              | Done    |
 | v2.6.0  | Multi-user support              | Planned |
 
 See [ROADMAP.md](ROADMAP.md) for details.

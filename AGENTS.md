@@ -78,16 +78,28 @@ lib/
 │   ├── constants/           # App constants + env config
 │   ├── extensions/          # DateTime extension methods
 │   ├── providers/           # API service Riverpod providers
-│   ├── router/              # GoRouter configuration
+│   ├── router/              # GoRouter configuration (StatefulShellRoute)
 │   ├── services/            # Generic HTTP API client
-│   └── theme/               # Material 3 theming
+│   ├── theme/               # Material 3 theming
+│   └── widgets/             # ScaffoldWithNavigation, ResponsiveLayout, etc.
 └── features/
-    └── subscriptions/       # Feature module
+    ├── analytics/           # Analytics & Insights feature
+    │   ├── models/          # CategorySpending, MonthlySpending, AnalyticsStats
+    │   ├── providers/       # Derived providers (spending, trend, stats, period)
+    │   ├── screens/         # AnalyticsScreen (responsive layouts)
+    │   └── widgets/         # CategoryChart, MonthlyTrendChart, StatisticsCards, PeriodSelector
+    ├── settings/            # Settings & preferences feature
+    │   ├── models/          # UserSettings model (base currency)
+    │   ├── providers/       # ThemeMode, AnalyticsEnabled, BannerDismissed, UserSettings
+    │   ├── screens/         # SettingsScreen
+    │   ├── services/        # FileService, SettingsApiService
+    │   └── widgets/         # ThemeSelector, CurrencySelector, AnalyticsToggle, Export/Import
+    └── subscriptions/       # Subscription management feature
         ├── models/          # Data models (Subscription, BillingCycle, Category)
         ├── providers/       # Async Riverpod state management
         ├── screens/         # Full-screen widgets
         ├── services/        # Subscription API service
-        └── widgets/         # Reusable components
+        └── widgets/         # SubscriptionListTile, SummaryCard, AnalyticsBanner, etc.
 ```
 
 ### Backend Structure
@@ -107,7 +119,7 @@ api/
 
 **State Management**: Riverpod 2.x with code generation (`@riverpod` annotations) using AsyncNotifier for API integration.
 
-**Data Storage**: SQLite via Entity Framework Core. No local storage in Flutter — all data flows through the API.
+**Data Storage**: SQLite via Entity Framework Core. Local preferences (theme, analytics opt-in, banner dismissed) use SharedPreferences; all subscription data flows through the API.
 
 **Environment Configuration**: API base URL loaded from `.env` file at runtime via `flutter_dotenv`.
 

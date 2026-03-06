@@ -2,19 +2,8 @@
 
 Planned features and improvements for SubTracker.
 
-## v2.3.0 — UI & Accessibility
+## v2.3.0 — UI & Accessibility (Done)
 
-## v2.3.0 — UI & Accessibility
-
-| Feature                       | Description                                                  |
-| ----------------------------- | ------------------------------------------------------------ |
-| Swipe action hints            | Visual indication of available swipe actions on mobile       |
-| Skeleton loading              | Placeholder loading state while fetching subscriptions       |
-| Semantics & accessibility     | Screen reader support and semantic labels throughout the app |
-| Reposition "Add Subscription" | Move FAB/button to a more ergonomic position on desktop      |
-| Bottom sheets → PopupMenu     | Replace bottom sheets with PopupMenu on desktop              |
-| Improved tablet layout        | Better use of screen real estate on tablet breakpoint        |
-| Keyboard shortcuts            | Keyboard navigation and shortcuts for desktop users          |
 | Feature                       | Description                                                  |
 | ----------------------------- | ------------------------------------------------------------ |
 | Swipe action hints            | Visual indication of available swipe actions on mobile       |
@@ -35,27 +24,20 @@ Planned features and improvements for SubTracker.
 | User settings API      | `GET/PUT /api/settings` for persisting base currency preference    |
 | Exchange rates API     | `GET /api/exchange-rates` with background refresh every 6 hours    |
 
-## v2.5.0 — Analytics & Insights
+## v2.5.0 — Analytics & Insights (Done)
 
-| Feature              | Description                               |
-| -------------------- | ----------------------------------------- |
-| Spending by category | Pie chart visualization with fl_chart     |
-| Monthly trends       | Line chart showing spending over time     |
-| Statistics screen    | Averages, trends, most expensive category |
-| Feature              | Description                               |
-| -------------------- | ----------------------------------------- |
-| Spending by category | Pie chart visualization with fl_chart     |
-| Monthly trends       | Line chart showing spending over time     |
-| Statistics screen    | Averages, trends, most expensive category |
-
-## v2.6.0 — Multi-user
+| Feature              | Description                                                             |
+| -------------------- | ----------------------------------------------------------------------- |
+| Permanent navigation | NavigationBar (mobile) + NavigationRail (desktop) with 3 destinations   |
+| Spending by category | Donut chart visualization with fl_chart, legend, and touch interactions |
+| Monthly trends       | Line chart showing spending over configurable period (3/6/12 months)    |
+| Statistics cards     | KPIs: monthly/yearly totals, most expensive subscription, top category  |
+| Period selector      | SegmentedButton to filter charts by 3, 6, or 12 months                  |
+| Responsive analytics | Mobile full-width, tablet centered (700px), desktop 2-column layout     |
+| Accessibility        | Semantics on charts, tooltips on cards, accessible labels on controls   |
 
 ## v2.6.0 — Multi-user
 
-| Feature           | Description                             |
-| ----------------- | --------------------------------------- |
-| User registration | Create account with email/password      |
-| Data isolation    | Each user sees only their subscriptions |
 | Feature           | Description                             |
 | ----------------- | --------------------------------------- |
 | User registration | Create account with email/password      |
@@ -63,14 +45,6 @@ Planned features and improvements for SubTracker.
 
 ## Future Ideas
 
-| Feature                   | Description                               |
-| ------------------------- | ----------------------------------------- |
-| OIDC support              | Login with Google, Apple, Microsoft, etc. |
-| Native mobile app         | Flutter iOS/Android build                 |
-| Native push notifications | Firebase Cloud Messaging                  |
-| Calendar integration      | Sync billing dates with calendar          |
-| Custom categories         | User-defined categories with icons        |
-| Receipt attachments       | Upload invoices/receipts per subscription |
 | Feature                   | Description                               |
 | ------------------------- | ----------------------------------------- |
 | OIDC support              | Login with Google, Apple, Microsoft, etc. |

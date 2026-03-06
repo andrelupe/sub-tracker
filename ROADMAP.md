@@ -36,6 +36,14 @@ Planned features and improvements for SubTracker.
 | Responsive analytics | Mobile full-width, tablet centered (700px), desktop 2-column layout     |
 | Accessibility        | Semantics on charts, tooltips on cards, accessible labels on controls   |
 
+## v2.5.1 — Analytics Polish (Done)
+
+| Feature                | Description                                                            |
+| ---------------------- | ---------------------------------------------------------------------- |
+| Monthly value labels   | Most Expensive and Top Category cards now show `/mo` suffix            |
+| Reordered mobile/tablet| Statistics cards first, then period filter + trend chart + donut chart  |
+| Reordered desktop      | Monthly trend chart placed directly below period selector              |
+
 ## v2.6.0 — Multi-user
 
 | Feature           | Description                             |

@@ -48,9 +48,11 @@ class _MobileLayout extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const PeriodSelector(),
-          const SizedBox(height: 24),
           const StatisticsCards(),
+          const SizedBox(height: 24),
+          const PeriodSelector(),
+          const SizedBox(height: 16),
+          const MonthlyTrendChart(),
           const SizedBox(height: 24),
           Text(
             'Spending by Category',
@@ -60,15 +62,6 @@ class _MobileLayout extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           const CategoryChart(),
-          const SizedBox(height: 24),
-          Text(
-            'Monthly Trend',
-            style: textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          const MonthlyTrendChart(),
           const SizedBox(height: 24),
         ],
       ),
@@ -88,9 +81,11 @@ class _TabletLayout extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const PeriodSelector(),
-            const SizedBox(height: 24),
             const StatisticsCards(),
+            const SizedBox(height: 24),
+            const PeriodSelector(),
+            const SizedBox(height: 16),
+            const MonthlyTrendChart(),
             const SizedBox(height: 24),
             Text(
               'Spending by Category',
@@ -100,15 +95,6 @@ class _TabletLayout extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             const CategoryChart(),
-            const SizedBox(height: 24),
-            Text(
-              'Monthly Trend',
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            const MonthlyTrendChart(),
             const SizedBox(height: 24),
           ],
         ),
@@ -141,6 +127,8 @@ class _DesktopLayout extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const PeriodSelector(),
+                  const SizedBox(height: 16),
+                  const MonthlyTrendChart(),
                   const SizedBox(height: 24),
                   Text(
                     'Spending by Category',
@@ -150,15 +138,6 @@ class _DesktopLayout extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   const CategoryChart(),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Monthly Trend',
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const MonthlyTrendChart(),
                   const SizedBox(height: 24),
                 ],
               ),

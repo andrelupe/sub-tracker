@@ -63,10 +63,13 @@ Uses **Riverpod 2.x with code generation** and **async providers** for API integ
 3. **SubscriptionsNotifier** (AsyncNotifier): Manages subscription state with API calls for all CRUD operations
 4. **Derived Providers**: Compute monthly/yearly totals (with currency conversion), due soon list, filtered results from async state
 5. **Filter/Sort Providers**: Client-side search, category filter, and sorting
-6. **ExchangeRatesNotifier** (keepAlive): Fetches and caches exchange rates from backend (Frankfurter API, 24h cache)
-7. **UserSettingsNotifier** (keepAlive): Manages base currency preference (EUR/USD/GBP)
-8. **baseCurrencyProvider**: Derived provider for quick access to current base currency (fallback EUR)
-9. **convertedMonthlyTotalProvider / convertedYearlyTotalProvider**: Convert totals to user's base currency using exchange rates
+6. **Analytics Providers** (`lib/features/analytics/providers/`): `AnalyticsPeriod` (3/6/12 months), `spendingByCategory`, `monthlyTrend`, `analyticsStats` — all derived client-side from subscriptions + exchange rates
+7. **AnalyticsEnabledNotifier** (keepAlive): Opt-in toggle for Analytics screen, persisted in SharedPreferences (disabled by default)
+8. **AnalyticsBannerDismissedNotifier** (keepAlive): Tracks whether the promotional banner on Home has been permanently dismissed
+9. **ExchangeRatesNotifier** (keepAlive): Fetches and caches exchange rates from backend (Frankfurter API, 24h cache)
+10. **UserSettingsNotifier** (keepAlive): Manages base currency preference (EUR/USD/GBP)
+11. **baseCurrencyProvider**: Derived provider for quick access to current base currency (fallback EUR)
+12. **convertedMonthlyTotalProvider / convertedYearlyTotalProvider**: Convert totals to user's base currency using exchange rates
 
 **Key pattern**: The `SubscriptionsNotifier` extends `AsyncNotifier<List<Subscription>>`. All mutations (`create`, `updateSubscription`, `delete`, `toggleActive`) are async and call the API, then refresh state via `ref.invalidateSelf()`.
 
@@ -106,11 +109,14 @@ The app relies on code generation for Riverpod providers. Files with `@riverpod`
 
 ### Navigation
 
-Uses **GoRouter** with type-safe routing:
+Uses **GoRouter** with `StatefulShellRoute.indexedStack` for tab-based navigation:
 - Routes defined in `lib/core/router/app_router.dart`
-- Route constants in `AppRoutes` class
-- Navigate with `context.push()`, return with `context.pop()`
+- Route constants in `AppRoutes` class (`/`, `/analytics`, `/settings`)
+- Shell navigation (Home/Analytics/Settings) uses `context.go()` — state is preserved across tabs
+- Non-shell routes (Add/Edit subscription) use `context.push()` / `context.pop()`
 - Edit routes use path parameters: `/subscription/edit/:id`
+- `ScaffoldWithNavigation` (`lib/core/widgets/scaffold_with_navigation.dart`): shell widget with `NavigationBar` (mobile/tablet < 900px) and `NavigationRail` (desktop >= 900px)
+- **Analytics opt-in**: Router watches `analyticsEnabledNotifierProvider`; when disabled, `/analytics` redirects to `/` and `ScaffoldWithNavigation` shows only 2 destinations (Home + Settings). When enabled, all 3 branches are visible. The shell always keeps 3 branches; index remapping is handled by `_visibleBranches` in `ScaffoldWithNavigation`
 
 ### Key Models
 
@@ -143,6 +149,9 @@ Use these extensions for all date calculations to maintain consistency across th
 - Category colors are semantic (defined in enum)
 - "Due Soon" configurable via `reminderDaysBefore` (default: 2 days)
 - AsyncValue `.when()` pattern for loading/error/data states in UI
+- Permanent navigation: `NavigationBar` (mobile/tablet) + `NavigationRail` (desktop)
+- Charts: `fl_chart` package for PieChart (donut) and LineChart with touch interactions
+- Responsive breakpoints: mobile (< 600px), tablet (600-899px), desktop (>= 900px)
 
 ### Error Handling
 
@@ -191,12 +200,15 @@ lib/features/your_feature/
 
 ## Testing
 
-### Flutter Tests (87 tests)
+### Flutter Tests (152 tests)
 - Models: Billing calculations, date logic, computed properties, exchange rates, user settings
 - Providers: Filter/sort logic, search, category filtering
+- Analytics providers: spendingByCategory, monthlyTrend, analyticsStats, period selection, currency conversion, edge cases
+- Analytics widgets: PeriodSelector, StatisticsCards, CategoryChart, MonthlyTrendChart (rendering, empty states, accessibility)
+- Settings widgets: CurrencySelector, AnalyticsToggle (toggle state, section title, enable/disable)
+- Subscription widgets: AnalyticsBanner (show/hide conditions, Enable/Dismiss actions, Card styling)
 - Extensions: DateTime manipulation
 - Services: API key auth (header injection, 401 handling)
-- Widgets: Currency selector
 - Exchange rates: Currency conversion (direct, reverse, cross, fallback)
 
 ### .NET Tests (75 tests)

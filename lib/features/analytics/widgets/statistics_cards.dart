@@ -39,7 +39,7 @@ class StatisticsCards extends ConsumerWidget {
             ? stats.mostExpensiveSubscription!.name
             : '\u2014',
         subtitle: stats.mostExpensiveSubscription != null
-            ? '$symbol${stats.mostExpensiveAmount.toStringAsFixed(2)}'
+            ? '$symbol${stats.mostExpensiveAmount.toStringAsFixed(2)}/mo'
             : '',
       ),
       _StatCard(
@@ -49,7 +49,7 @@ class StatisticsCards extends ConsumerWidget {
             ? stats.topCategory!.category.label
             : '\u2014',
         subtitle: stats.topCategory != null
-            ? '$symbol${stats.topCategory!.monthlyAmount.toStringAsFixed(2)}'
+            ? '$symbol${stats.topCategory!.monthlyAmount.toStringAsFixed(2)}/mo'
             : '',
       ),
     ];

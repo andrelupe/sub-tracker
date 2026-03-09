@@ -44,6 +44,12 @@ Planned features and improvements for SubTracker.
 | Reordered mobile/tablet| Statistics cards first, then period filter + trend chart + donut chart  |
 | Reordered desktop      | Monthly trend chart placed directly below period selector              |
 
+## v2.5.2 — Multi-architecture Docker (Done)
+
+| Feature                  | Description                                                        |
+| ------------------------ | ------------------------------------------------------------------ |
+| Multi-arch Docker images | Published images support linux/amd64 and linux/arm64 (Apple M1+)  |
+
 ## v2.6.0 — Multi-user
 
 | Feature           | Description                             |

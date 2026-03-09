@@ -4,7 +4,7 @@
 # ============================================
 # Stage 1: Build Flutter Web
 # ============================================
-FROM ghcr.io/cirruslabs/flutter:stable AS flutter-build
+FROM --platform=linux/amd64 ghcr.io/cirruslabs/flutter:stable AS flutter-build
 
 WORKDIR /app
 

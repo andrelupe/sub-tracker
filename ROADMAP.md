@@ -38,17 +38,17 @@ Planned features and improvements for SubTracker.
 
 ## v2.5.1 — Analytics Polish (Done)
 
-| Feature                | Description                                                            |
-| ---------------------- | ---------------------------------------------------------------------- |
-| Monthly value labels   | Most Expensive and Top Category cards now show `/mo` suffix            |
-| Reordered mobile/tablet| Statistics cards first, then period filter + trend chart + donut chart  |
-| Reordered desktop      | Monthly trend chart placed directly below period selector              |
+| Feature                 | Description                                                            |
+| ----------------------- | ---------------------------------------------------------------------- |
+| Monthly value labels    | Most Expensive and Top Category cards now show `/mo` suffix            |
+| Reordered mobile/tablet | Statistics cards first, then period filter + trend chart + donut chart |
+| Reordered desktop       | Monthly trend chart placed directly below period selector              |
 
 ## v2.5.2 — Multi-architecture Docker (Done)
 
-| Feature                  | Description                                                        |
-| ------------------------ | ------------------------------------------------------------------ |
-| Multi-arch Docker images | Published images support linux/amd64 and linux/arm64 (Apple M1+)  |
+| Feature                  | Description                                                      |
+| ------------------------ | ---------------------------------------------------------------- |
+| Multi-arch Docker images | Published images support linux/amd64 and linux/arm64 (Apple M1+) |
 
 ## v2.6.0 — Multi-user
 
@@ -59,14 +59,15 @@ Planned features and improvements for SubTracker.
 
 ## Future Ideas
 
-| Feature                   | Description                               |
-| ------------------------- | ----------------------------------------- |
-| OIDC support              | Login with Google, Apple, Microsoft, etc. |
-| Native mobile app         | Flutter iOS/Android build                 |
-| Native push notifications | Firebase Cloud Messaging                  |
-| Calendar integration      | Sync billing dates with calendar          |
-| Custom categories         | User-defined categories with icons        |
-| Receipt attachments       | Upload invoices/receipts per subscription |
+| Feature                   | Description                                                    |
+| ------------------------- | -------------------------------------------------------------- |
+| OIDC support              | Login with Google, Apple, Microsoft, etc.                      |
+| Native mobile app         | Flutter iOS/Android build                                      |
+| Native push notifications | Firebase Cloud Messaging                                       |
+| Calendar integration      | Sync billing dates with calendar                               |
+| Custom categories         | User-defined categories with icons                             |
+| Receipt attachments       | Upload invoices/receipts per subscription                      |
+| Contract end dates        | Optional contract term with end date and cancellation reminder |
 
 ---
 

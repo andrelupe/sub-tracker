@@ -129,7 +129,7 @@ public sealed class ImportEndpoint : Endpoint<ImportEndpoint.Request, ImportEndp
             return $"Invalid currency: {dto.Currency}. Must be one of: EUR, USD, GBP";
 
         if (!Enum.TryParse<Domain.BillingCycle>(dto.BillingCycle, out _))
-            return $"Invalid billing cycle: {dto.BillingCycle}. Must be one of: Weekly, Monthly, Quarterly, Yearly";
+            return $"Invalid billing cycle: {dto.BillingCycle}. Must be one of: Weekly, Monthly, Quarterly, Yearly, Biannual";
 
         if (!Enum.TryParse<SubscriptionCategory>(dto.Category, out _))
             return $"Invalid category: {dto.Category}. Must be one of: {string.Join(", ", Enum.GetNames<SubscriptionCategory>())}";

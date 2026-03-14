@@ -360,7 +360,7 @@ class _SubscriptionFormScreenState
                 decoration: const InputDecoration(
                   labelText: 'Billing Cycle',
                 ),
-                items: BillingCycle.values.map((cycle) {
+                items: BillingCycle.sortedByFrequency.map((cycle) {
                   return DropdownMenuItem(
                       value: cycle, child: Text(cycle.label));
                 }).toList(),

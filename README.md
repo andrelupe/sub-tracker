@@ -356,7 +356,8 @@ cd api && dotnet test
 | v2.5.0  | Analytics & Charts        | Done    |
 | v2.5.1  | Analytics Polish          | Done    |
 | v2.5.2  | Multi-architecture Docker | Done    |
-| v2.6.0  | Multi-user support        | Planned |
+| v2.6.0  | Biannual Billing Cycle    | Done    |
+| v3.0.0  | Multi-user support        | Planned |
 
 See [ROADMAP.md](ROADMAP.md) for details.
 

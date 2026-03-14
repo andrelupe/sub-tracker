@@ -50,12 +50,21 @@ Planned features and improvements for SubTracker.
 | ------------------------ | ---------------------------------------------------------------- |
 | Multi-arch Docker images | Published images support linux/amd64 and linux/arm64 (Apple M1+) |
 
-## v2.6.0 — Multi-user
+## v2.6.0 — Biannual Billing Cycle (Done)
 
-| Feature           | Description                             |
-| ----------------- | --------------------------------------- |
-| User registration | Create account with email/password      |
-| Data isolation    | Each user sees only their subscriptions |
+| Feature                | Description                                                         |
+| ---------------------- | ------------------------------------------------------------------- |
+| Biannual billing cycle | New billing cycle for subscriptions billed every 6 months (2×/year) |
+
+## v3.0.0 — Multi-user Support
+
+| Feature            | Description                                                             |
+| ------------------ | ----------------------------------------------------------------------- |
+| JWT authentication | Full email/password registration and login with access + refresh tokens |
+| Invite codes       | Admin generates invite codes for new user registration                  |
+| Password reset     | Admin-initiated token-based reset (no SMTP, self-hosted friendly)       |
+| Data isolation     | Each user sees only their own subscriptions and settings                |
+| Admin role         | First registered user is automatically admin                            |
 
 ## Future Ideas
 

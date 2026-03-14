@@ -535,6 +535,84 @@ public class SubscriptionTests
     }
 
     [Fact]
+    public void Create_ShouldCalculateNextBillingDate_Biannual()
+    {
+        // Arrange - start date Aug 1 2025, biannual (6 months)
+        var startDate = new DateTime(2025, 8, 1);
+
+        // Act
+        var subscription = Subscription.Create(
+            name: "Car Insurance",
+            description: "Biannual vehicle insurance",
+            amount: 450m,
+            currency: "EUR",
+            billingCycle: BillingCycle.Biannual,
+            category: SubscriptionCategory.Utilities,
+            startDate: startDate,
+            url: null,
+            reminderDaysBefore: 14,
+            utcNow: _utcNow // Feb 6 2026
+        );
+
+        // Assert - Aug 1 2025 + 6 months = Feb 1 2026, which is <= Feb 6,
+        // so advance again: Feb 1 + 6 = Aug 1 2026
+        Assert.Equal(new DateTime(2026, 8, 1), subscription.NextBillingDate);
+    }
+
+    [Fact]
+    public void IsDueSoon_Biannual_ShouldReturnTrue_WhenWithinReminderDays()
+    {
+        // Arrange - start date Aug 6 2025, biannual → NextBillingDate = Feb 6 2026 + 6m = Aug 6 2026
+        // Actually: Aug 6 2025 + 6m = Feb 6 2026, which is <= Feb 6 utcNow,
+        // so advance: Feb 6 + 6m = Aug 6 2026. That's too far.
+        // Instead, use a start date that lands NextBillingDate within reminder window.
+        // Start: Aug 8 2025 → +6m = Feb 8 2026 (> Feb 6) → NextBillingDate = Feb 8
+        var subscription = Subscription.Create(
+            name: "Car Insurance",
+            description: null,
+            amount: 450m,
+            currency: "EUR",
+            billingCycle: BillingCycle.Biannual,
+            category: SubscriptionCategory.Utilities,
+            startDate: new DateTime(2025, 8, 8), // Next billing Feb 8 2026
+            url: null,
+            reminderDaysBefore: 3,
+            utcNow: _utcNow // Feb 6
+        );
+
+        // Act & Assert - Feb 8 - Feb 6 = 2 days, which is <= 3
+        Assert.Equal(new DateTime(2026, 2, 8), subscription.NextBillingDate);
+        Assert.True(subscription.IsDueSoon(_utcNow));
+    }
+
+    [Fact]
+    public void AdvanceNextBillingDate_Biannual_ShouldAdvanceToFutureDate()
+    {
+        // Arrange - biannual, NextBillingDate = Feb 8 2026
+        var subscription = Subscription.Create(
+            name: "Car Insurance",
+            description: null,
+            amount: 450m,
+            currency: "EUR",
+            billingCycle: BillingCycle.Biannual,
+            category: SubscriptionCategory.Utilities,
+            startDate: new DateTime(2025, 8, 8), // Next billing Feb 8 2026
+            url: null,
+            reminderDaysBefore: 14,
+            utcNow: _utcNow
+        );
+
+        Assert.Equal(new DateTime(2026, 2, 8), subscription.NextBillingDate);
+
+        // Act - advance from Mar 1 2026 perspective (Feb 8 is in the past)
+        var futureNow = new DateTime(2026, 3, 1, 12, 0, 0, DateTimeKind.Utc);
+        subscription.AdvanceNextBillingDate(futureNow);
+
+        // Assert - should advance to Aug 8 2026 (Feb 8 + 6 months)
+        Assert.Equal(new DateTime(2026, 8, 8), subscription.NextBillingDate);
+    }
+
+    [Fact]
     public void NeedsNotification_Yearly_ShouldReturnTrue_WhenNotifiedInPreviousYearlyCycle()
     {
         // Arrange - Yearly subscription, NextBillingDate = Mar 1 2026

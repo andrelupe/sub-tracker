@@ -149,6 +149,7 @@ public sealed class Subscription
             BillingCycle.Monthly => NextBillingDate.AddMonths(-1),
             BillingCycle.Quarterly => NextBillingDate.AddMonths(-3),
             BillingCycle.Yearly => NextBillingDate.AddYears(-1),
+            BillingCycle.Biannual => NextBillingDate.AddMonths(-6),
             _ => NextBillingDate.AddMonths(-1)
         };
     }
@@ -167,6 +168,7 @@ public sealed class Subscription
                 BillingCycle.Monthly => next.AddMonths(1),
                 BillingCycle.Quarterly => next.AddMonths(3),
                 BillingCycle.Yearly => next.AddYears(1),
+                BillingCycle.Biannual => next.AddMonths(6),
                 _ => next.AddMonths(1)
             };
         }

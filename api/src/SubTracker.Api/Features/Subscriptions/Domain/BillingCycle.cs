@@ -5,5 +5,6 @@ public enum BillingCycle
     Weekly,
     Monthly,
     Quarterly,
-    Yearly
+    Yearly,
+    Biannual
 }

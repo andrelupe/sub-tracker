@@ -38,35 +38,45 @@ Planned features and improvements for SubTracker.
 
 ## v2.5.1 — Analytics Polish (Done)
 
-| Feature                | Description                                                            |
-| ---------------------- | ---------------------------------------------------------------------- |
-| Monthly value labels   | Most Expensive and Top Category cards now show `/mo` suffix            |
-| Reordered mobile/tablet| Statistics cards first, then period filter + trend chart + donut chart  |
-| Reordered desktop      | Monthly trend chart placed directly below period selector              |
+| Feature                 | Description                                                            |
+| ----------------------- | ---------------------------------------------------------------------- |
+| Monthly value labels    | Most Expensive and Top Category cards now show `/mo` suffix            |
+| Reordered mobile/tablet | Statistics cards first, then period filter + trend chart + donut chart |
+| Reordered desktop       | Monthly trend chart placed directly below period selector              |
 
 ## v2.5.2 — Multi-architecture Docker (Done)
 
-| Feature                  | Description                                                        |
-| ------------------------ | ------------------------------------------------------------------ |
-| Multi-arch Docker images | Published images support linux/amd64 and linux/arm64 (Apple M1+)  |
+| Feature                  | Description                                                      |
+| ------------------------ | ---------------------------------------------------------------- |
+| Multi-arch Docker images | Published images support linux/amd64 and linux/arm64 (Apple M1+) |
 
-## v2.6.0 — Multi-user
+## v2.6.0 — Biannual Billing Cycle (Done)
 
-| Feature           | Description                             |
-| ----------------- | --------------------------------------- |
-| User registration | Create account with email/password      |
-| Data isolation    | Each user sees only their subscriptions |
+| Feature                | Description                                                         |
+| ---------------------- | ------------------------------------------------------------------- |
+| Biannual billing cycle | New billing cycle for subscriptions billed every 6 months (2×/year) |
+
+## v3.0.0 — Multi-user Support
+
+| Feature            | Description                                                             |
+| ------------------ | ----------------------------------------------------------------------- |
+| JWT authentication | Full email/password registration and login with access + refresh tokens |
+| Invite codes       | Admin generates invite codes for new user registration                  |
+| Password reset     | Admin-initiated token-based reset (no SMTP, self-hosted friendly)       |
+| Data isolation     | Each user sees only their own subscriptions and settings                |
+| Admin role         | First registered user is automatically admin                            |
 
 ## Future Ideas
 
-| Feature                   | Description                               |
-| ------------------------- | ----------------------------------------- |
-| OIDC support              | Login with Google, Apple, Microsoft, etc. |
-| Native mobile app         | Flutter iOS/Android build                 |
-| Native push notifications | Firebase Cloud Messaging                  |
-| Calendar integration      | Sync billing dates with calendar          |
-| Custom categories         | User-defined categories with icons        |
-| Receipt attachments       | Upload invoices/receipts per subscription |
+| Feature                   | Description                                                    |
+| ------------------------- | -------------------------------------------------------------- |
+| OIDC support              | Login with Google, Apple, Microsoft, etc.                      |
+| Native mobile app         | Flutter iOS/Android build                                      |
+| Native push notifications | Firebase Cloud Messaging                                       |
+| Calendar integration      | Sync billing dates with calendar                               |
+| Custom categories         | User-defined categories with icons                             |
+| Receipt attachments       | Upload invoices/receipts per subscription                      |
+| Contract end dates        | Optional contract term with end date and cancellation reminder |
 
 ---
 

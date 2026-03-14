@@ -4,7 +4,8 @@ enum BillingCycle {
   weekly('Weekly'),
   monthly('Monthly'),
   quarterly('Quarterly'),
-  yearly('Yearly');
+  yearly('Yearly'),
+  biannual('Biannual');
 
   const BillingCycle(this.label);
 
@@ -20,6 +21,7 @@ enum BillingCycle {
         BillingCycle.monthly => next.addMonths(1),
         BillingCycle.quarterly => next.addMonths(3),
         BillingCycle.yearly => next.addYears(1),
+        BillingCycle.biannual => next.addMonths(6),
       };
     }
 
@@ -32,6 +34,7 @@ enum BillingCycle {
       BillingCycle.monthly => amount,
       BillingCycle.quarterly => amount / 3,
       BillingCycle.yearly => amount / 12,
+      BillingCycle.biannual => amount / 6,
     };
   }
 
@@ -41,8 +44,18 @@ enum BillingCycle {
       BillingCycle.monthly => amount * 12,
       BillingCycle.quarterly => amount * 4,
       BillingCycle.yearly => amount,
+      BillingCycle.biannual => amount * 2,
     };
   }
+
+  /// Values sorted by billing frequency (ascending) for display in dropdowns.
+  static const List<BillingCycle> sortedByFrequency = [
+    weekly,
+    monthly,
+    quarterly,
+    biannual,
+    yearly,
+  ];
 
   static BillingCycle fromJson(int index) {
     return BillingCycle.values[index];

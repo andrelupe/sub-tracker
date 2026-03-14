@@ -35,6 +35,24 @@ void main() {
       expect(yearlySub.monthlyAmount, equals(10.0));
     });
 
+    test('monthlyAmount returns correct value for biannual cycle', () {
+      final biannualSub = subscription.copyWith(
+        billingCycle: BillingCycle.biannual,
+        amount: 600,
+      );
+
+      expect(biannualSub.monthlyAmount, equals(100.0));
+    });
+
+    test('yearlyAmount returns correct value for biannual cycle', () {
+      final biannualSub = subscription.copyWith(
+        billingCycle: BillingCycle.biannual,
+        amount: 600,
+      );
+
+      expect(biannualSub.yearlyAmount, equals(1200.0));
+    });
+
     test('yearlyAmount returns correct value for monthly cycle', () {
       expect(subscription.yearlyAmount, closeTo(191.88, 0.01));
     });
@@ -80,11 +98,61 @@ void main() {
       );
     });
 
+    test('monthlyEquivalent calculates correctly for biannual', () {
+      expect(
+        BillingCycle.biannual.monthlyEquivalent(600),
+        equals(100.0),
+      );
+    });
+
+    test('yearlyEquivalent calculates correctly for biannual', () {
+      expect(
+        BillingCycle.biannual.yearlyEquivalent(600),
+        equals(1200.0),
+      );
+    });
+
     test('nextBillingDate returns future date', () {
       final startDate = DateTime(2024, 1, 1);
       final nextDate = BillingCycle.monthly.nextBillingDate(startDate);
 
       expect(nextDate.isAfter(DateTime.now()), isTrue);
+    });
+
+    test('addBillingPeriod advances biannual by 6 months', () {
+      final startDate = DateTime(2025, 3, 1);
+      final nextDate = BillingCycle.biannual.nextBillingDate(startDate);
+
+      // Starting from March 2025, the next biannual date should be
+      // September 2025 or March 2026 (whichever is after now)
+      expect(nextDate.isAfter(DateTime.now()), isTrue);
+      // The month should be either 3 (March) or 9 (September)
+      expect(
+        nextDate.month == 3 || nextDate.month == 9,
+        isTrue,
+      );
+    });
+
+    test('sortedByFrequency returns cycles in ascending order', () {
+      expect(
+        BillingCycle.sortedByFrequency,
+        equals([
+          BillingCycle.weekly,
+          BillingCycle.monthly,
+          BillingCycle.quarterly,
+          BillingCycle.biannual,
+          BillingCycle.yearly,
+        ]),
+      );
+    });
+
+    test('fromJson maps biannual index correctly', () {
+      // biannual is at index 4 (after yearly at 3)
+      expect(BillingCycle.fromJson(4), equals(BillingCycle.biannual));
+    });
+
+    test('toJson returns correct index for biannual', () {
+      expect(BillingCycle.biannual.toJson(), equals(4));
     });
   });
 }

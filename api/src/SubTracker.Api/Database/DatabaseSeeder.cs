@@ -167,6 +167,18 @@ public static class DatabaseSeeder
                 url: "https://youtube.com/premium",
                 reminderDaysBefore: 2,
                 utcNow: utcNow),
+
+            Subscription.Create(
+                name: "Car Insurance",
+                description: "Biannual vehicle insurance premium",
+                amount: 450.00m,
+                currency: "EUR",
+                billingCycle: BillingCycle.Biannual,
+                category: SubscriptionCategory.Utilities,
+                startDate: utcNow.AddMonths(-3).AddDays(-10),
+                url: null,
+                reminderDaysBefore: 14,
+                utcNow: utcNow),
         };
 
         db.Subscriptions.AddRange(subscriptions);

@@ -228,71 +228,64 @@ Generate a secure key with:
 openssl rand -base64 32
 ```
 
-### All-in-One (Frontend + API)
+### Basic Setup
 
-```bash
-docker run -d \
-  -p 80:80 \
-  -v subtracker-data:/data \
-  -e ConnectionStrings__Default="Data Source=/data/subtracker.db" \
-  andrelppereira/subtracker:latest
+```yaml
+services:
+  subtracker:
+    image: andrelppereira/subtracker:latest
+    ports:
+      - "80:80"
+    volumes:
+      - subtracker-data:/data
+    environment:
+      - ConnectionStrings__Default=Data Source=/data/subtracker.db
+
+volumes:
+  subtracker-data:
 ```
 
 Open `http://localhost` to access the app.
 
 ### With API Key Authentication
 
-```bash
-docker run -d \
-  -p 80:80 \
-  -v subtracker-data:/data \
-  -e ConnectionStrings__Default="Data Source=/data/subtracker.db" \
-  -e ApiKey=your-secret-api-key \
-  -e SUBTRACKER_API_KEY=your-secret-api-key \
-  andrelppereira/subtracker:latest
-```
+```yaml
+services:
+  subtracker:
+    image: andrelppereira/subtracker:latest
+    ports:
+      - "80:80"
+    volumes:
+      - subtracker-data:/data
+    environment:
+      - ConnectionStrings__Default=Data Source=/data/subtracker.db
+      - ApiKey=your-secret-api-key
+      - SUBTRACKER_API_KEY=your-secret-api-key
 
-### With Pushover Notifications
-
-```bash
-docker run -d \
-  -p 80:80 \
-  -v subtracker-data:/data \
-  -e ConnectionStrings__Default="Data Source=/data/subtracker.db" \
-  -e Pushover__ApiToken=your_token \
-  -e Pushover__UserKey=your_key \
-  andrelppereira/subtracker:latest
+volumes:
+  subtracker-data:
 ```
 
 ### Full Example (all options)
 
-```bash
-docker run -d \
-  -p 80:80 \
-  -v subtracker-data:/data \
-  -e ConnectionStrings__Default="Data Source=/data/subtracker.db" \
-  -e ApiKey=your-secret-api-key \
-  -e SUBTRACKER_API_KEY=your-secret-api-key \
-  -e Pushover__ApiToken=your_token \
-  -e Pushover__UserKey=your_key \
-  andrelppereira/subtracker:latest
-```
+```yaml
+services:
+  subtracker:
+    image: andrelppereira/subtracker:latest
+    ports:
+      - "80:80"
+    volumes:
+      - subtracker-data:/data
+    environment:
+      - ConnectionStrings__Default=Data Source=/data/subtracker.db
+      - ApiKey=your-secret-api-key
+      - SUBTRACKER_API_KEY=your-secret-api-key
+      - Pushover__ApiToken=your_token
+      - Pushover__UserKey=your_key
+    restart: unless-stopped
 
-### API Only
-
-```bash
-docker run -d \
-  -p 5080:8080 \
-  -v subtracker-data:/data \
-  -e ConnectionStrings__Default="Data Source=/data/subtracker.db" \
-  andrelppereira/subtracker-api:latest
-```
-
-### Build locally
-
-```bash
-cd api
-docker-compose up -d
+volumes:
+  subtracker-data:
 ```
 
 ## Configuration
@@ -356,17 +349,15 @@ cd api && dotnet test
 
 ## Roadmap
 
-| Version | Focus                           | Status  |
-| ------- | ------------------------------- | ------- |
-| v2.2.0  | Settings, Themes, Import/Export | Done    |
-| v2.2.1  | Responsive Desktop Layout       | Done    |
-| v2.2.2  | UI Polish & Desktop UX          | Done    |
-| v2.3.0  | UI & Accessibility              | Done    |
-| v2.4.0  | Security & Multi-currency       | Done    |
-| v2.5.0  | Analytics & Charts              | Done    |
-| v2.5.1  | Analytics Polish                | Done    |
-| v2.5.2  | Multi-architecture Docker       | Done    |
-| v2.6.0  | Multi-user support              | Planned |
+| Version | Focus                     | Status  |
+| ------- | ------------------------- | ------- |
+| v2.3.0  | UI & Accessibility        | Done    |
+| v2.4.0  | Security & Multi-currency | Done    |
+| v2.5.0  | Analytics & Charts        | Done    |
+| v2.5.1  | Analytics Polish          | Done    |
+| v2.5.2  | Multi-architecture Docker | Done    |
+| v2.6.0  | Biannual Billing Cycle    | Done    |
+| v3.0.0  | Multi-user support        | Planned |
 
 See [ROADMAP.md](ROADMAP.md) for details.
 

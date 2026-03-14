@@ -104,7 +104,7 @@ public class ImportEndpointTests : IDisposable
             return $"Invalid currency: {dto.Currency}. Must be one of: EUR, USD, GBP";
 
         if (!Enum.TryParse<BillingCycle>(dto.BillingCycle, out _))
-            return $"Invalid billing cycle: {dto.BillingCycle}. Must be one of: Weekly, Monthly, Quarterly, Yearly";
+            return $"Invalid billing cycle: {dto.BillingCycle}. Must be one of: Weekly, Monthly, Quarterly, Yearly, Biannual";
 
         if (!Enum.TryParse<SubscriptionCategory>(dto.Category, out _))
             return $"Invalid category: {dto.Category}. Must be one of: {string.Join(", ", Enum.GetNames<SubscriptionCategory>())}";
@@ -700,7 +700,7 @@ public class ImportEndpointTests : IDisposable
     public async Task Import_AllValidBillingCycles_ShouldSucceed()
     {
         // Arrange
-        var cycles = new[] { "Weekly", "Monthly", "Quarterly", "Yearly" };
+        var cycles = new[] { "Weekly", "Monthly", "Quarterly", "Yearly", "Biannual" };
         var request = new Request
         {
             Subscriptions = cycles.Select(c => new SubscriptionImportDto
@@ -718,7 +718,7 @@ public class ImportEndpointTests : IDisposable
         var response = await ExecuteImport(request);
 
         // Assert
-        Assert.Equal(4, response.Imported);
+        Assert.Equal(5, response.Imported);
         Assert.Empty(response.Errors);
     }
 
@@ -746,6 +746,42 @@ public class ImportEndpointTests : IDisposable
         // Assert
         Assert.Equal(categories.Length, response.Imported);
         Assert.Empty(response.Errors);
+    }
+
+    [Fact]
+    public async Task Import_BiannualBillingCycle_ShouldSucceedAndCalculateNextBillingDate()
+    {
+        // Arrange
+        var request = new Request
+        {
+            Subscriptions =
+            [
+                new SubscriptionImportDto
+                {
+                    Name = "Car Insurance",
+                    Description = "Biannual vehicle insurance",
+                    Amount = 450m,
+                    Currency = "EUR",
+                    BillingCycle = "Biannual",
+                    Category = "Utilities",
+                    StartDate = new DateTime(2025, 8, 15), // +6m = Feb 15 2026 (> Feb 6 utcNow)
+                    ReminderDaysBefore = 14,
+                    IsActive = true
+                }
+            ]
+        };
+
+        // Act
+        var response = await ExecuteImport(request);
+
+        // Assert
+        Assert.Equal(1, response.Imported);
+        Assert.Empty(response.Errors);
+
+        var subscription = await _db.Subscriptions.SingleAsync();
+        Assert.Equal("Car Insurance", subscription.Name);
+        Assert.Equal(BillingCycle.Biannual, subscription.BillingCycle);
+        Assert.Equal(new DateTime(2026, 2, 15), subscription.NextBillingDate);
     }
 
     [Fact]

@@ -27,4 +27,5 @@ Please commit all current changes in the repository.
    - Body: bullet-point list of detailed changes
 3. Commit the changes
    - Use a HEREDOC to pass the message to `git commit`
+   - Do NOT add any Co-Authored-By trailer
 4. Output the commit hash and the final commit message

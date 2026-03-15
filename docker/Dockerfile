@@ -57,6 +57,9 @@ COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY docker/start.sh ./start.sh
 RUN chmod +x ./start.sh
 
+# Ensure /data directory exists for SQLite database
+RUN mkdir -p /data
+
 # Expose port
 EXPOSE 80
 

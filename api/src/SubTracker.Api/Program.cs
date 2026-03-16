@@ -1,11 +1,15 @@
+using System.Text;
 using FastEndpoints;
 using Microsoft.Extensions.Http.Resilience;
 using FastEndpoints.Swagger;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using SubTracker.Api.Common;
 using SubTracker.Api.Database;
-using SubTracker.Api.Common.Middleware;
+using SubTracker.Api.Features.Auth;
+using SubTracker.Api.Features.Auth.Services;
 using SubTracker.Api.Features.ExchangeRates;
 using SubTracker.Api.Features.Notifications;
 
@@ -42,6 +46,30 @@ try
     builder.Services.AddFastEndpoints();
     builder.Services.SwaggerDocument();
 
+    // JWT Authentication
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "SubTracker",
+                ValidAudience = builder.Configuration["Jwt:Audience"] ?? "SubTracker",
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!)),
+                ClockSkew = TimeSpan.Zero
+            };
+        });
+
+    builder.Services.AddAuthorization();
+
+    // Auth Services
+    builder.Services.AddScoped<ITokenService, TokenService>();
+    builder.Services.AddScoped<IPasswordService, PasswordService>();
+
     // Services
     builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
     builder.Services.Configure<PushoverOptions>(builder.Configuration.GetSection("Pushover"));
@@ -59,6 +87,7 @@ try
     // Background Jobs
     builder.Services.AddHostedService<CheckDueSubscriptionsJob>();
     builder.Services.AddHostedService<RefreshRatesBackgroundJob>();
+    builder.Services.AddHostedService<CleanupExpiredTokensJob>();
 
     // CORS
     builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
@@ -79,13 +108,14 @@ try
     }
 
     app.UseCors();
-    app.UseMiddleware<ApiKeyMiddleware>();
+    app.UseAuthentication();
+    app.UseAuthorization();
     app.UseSerilogRequestLogging();
     app.UseFastEndpoints();
     app.UseSwaggerGen();
 
     app.Run();
-    
+
     Log.Information("SubTracker API stopped cleanly");
 }
 catch (Exception ex)

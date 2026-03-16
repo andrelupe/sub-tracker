@@ -31,11 +31,13 @@ public sealed class GetSettingsEndpoint : EndpointWithoutRequest<GetSettingsEndp
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var settings = await _db.UserSettings.FirstOrDefaultAsync(ct);
+        // TODO: Replace with User.GetUserId() from JWT claims when auth is integrated
+        var userId = Guid.Empty;
+        var settings = await _db.UserSettings.FirstOrDefaultAsync(s => s.UserId == userId, ct);
 
         if (settings is null)
         {
-            settings = UserSettings.CreateDefault(_dateTime.UtcNow);
+            settings = UserSettings.CreateDefault(userId, _dateTime.UtcNow);
             _db.UserSettings.Add(settings);
             await _db.SaveChangesAsync(ct);
         }

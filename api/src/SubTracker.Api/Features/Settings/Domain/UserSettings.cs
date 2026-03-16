@@ -5,16 +5,17 @@ public sealed class UserSettings
     public static readonly string[] SupportedCurrencies = ["EUR", "USD", "GBP"];
 
     public int Id { get; private set; }
+    public Guid UserId { get; private set; }
     public string BaseCurrency { get; private set; } = "EUR";
     public DateTime UpdatedAt { get; private set; }
 
     private UserSettings() { }
 
-    public static UserSettings CreateDefault(DateTime utcNow)
+    public static UserSettings CreateDefault(Guid userId, DateTime utcNow)
     {
         return new UserSettings
         {
-            Id = 1,
+            UserId = userId,
             BaseCurrency = "EUR",
             UpdatedAt = utcNow
         };

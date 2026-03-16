@@ -82,6 +82,12 @@ public sealed class AppDbContext : DbContext
         modelBuilder.Entity<UserSettings>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.UserId).IsRequired();
+            entity.HasIndex(e => e.UserId).IsUnique();
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
             entity.Property(e => e.BaseCurrency).HasMaxLength(3).IsRequired();
         });
     }

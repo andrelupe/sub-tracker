@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SubTracker.Api.Database;
 
@@ -10,9 +11,11 @@ using SubTracker.Api.Database;
 namespace SubTracker.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260316001626_AddMultiUserSupport")]
+    partial class AddMultiUserSupport
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.2");
@@ -172,13 +175,10 @@ namespace SubTracker.Api.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
 
                     b.ToTable("UserSettings");
                 });
@@ -238,7 +238,7 @@ namespace SubTracker.Api.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -277,22 +277,11 @@ namespace SubTracker.Api.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("SubTracker.Api.Features.Settings.Domain.UserSettings", b =>
-                {
-                    b.HasOne("SubTracker.Api.Features.Auth.Domain.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("SubTracker.Api.Features.Subscriptions.Domain.Subscription", b =>
                 {
                     b.HasOne("SubTracker.Api.Features.Auth.Domain.User", null)
                         .WithMany("Subscriptions")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UserId");
                 });
 
             modelBuilder.Entity("SubTracker.Api.Features.Auth.Domain.User", b =>

@@ -46,11 +46,13 @@ public sealed class UpdateSettingsEndpoint : Endpoint<UpdateSettingsEndpoint.Req
     {
         var utcNow = _dateTime.UtcNow;
 
-        var settings = await _db.UserSettings.FirstOrDefaultAsync(ct);
+        // TODO: Replace with User.GetUserId() from JWT claims when auth is integrated
+        var userId = Guid.Empty;
+        var settings = await _db.UserSettings.FirstOrDefaultAsync(s => s.UserId == userId, ct);
 
         if (settings is null)
         {
-            settings = UserSettings.CreateDefault(utcNow);
+            settings = UserSettings.CreateDefault(userId, utcNow);
             _db.UserSettings.Add(settings);
         }
 

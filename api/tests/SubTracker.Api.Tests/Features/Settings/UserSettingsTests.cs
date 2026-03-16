@@ -10,10 +10,9 @@ public sealed class UserSettingsTests
     public void CreateDefault_ShouldSetEurAsBaseCurrency()
     {
         // Act
-        var settings = UserSettings.CreateDefault(_utcNow);
+        var settings = UserSettings.CreateDefault(Guid.NewGuid(), _utcNow);
 
         // Assert
-        Assert.Equal(1, settings.Id);
         Assert.Equal("EUR", settings.BaseCurrency);
         Assert.Equal(_utcNow, settings.UpdatedAt);
     }
@@ -22,7 +21,7 @@ public sealed class UserSettingsTests
     public void UpdateBaseCurrency_ShouldChangeToUsd()
     {
         // Arrange
-        var settings = UserSettings.CreateDefault(_utcNow);
+        var settings = UserSettings.CreateDefault(Guid.NewGuid(), _utcNow);
         var newUtcNow = _utcNow.AddHours(1);
 
         // Act
@@ -37,7 +36,7 @@ public sealed class UserSettingsTests
     public void UpdateBaseCurrency_ShouldNormalizeToUpperCase()
     {
         // Arrange
-        var settings = UserSettings.CreateDefault(_utcNow);
+        var settings = UserSettings.CreateDefault(Guid.NewGuid(), _utcNow);
 
         // Act
         settings.UpdateBaseCurrency("gbp", _utcNow);
@@ -50,7 +49,7 @@ public sealed class UserSettingsTests
     public void UpdateBaseCurrency_ShouldThrow_WhenUnsupportedCurrency()
     {
         // Arrange
-        var settings = UserSettings.CreateDefault(_utcNow);
+        var settings = UserSettings.CreateDefault(Guid.NewGuid(), _utcNow);
 
         // Act & Assert
         var ex = Assert.Throws<ArgumentException>(() =>
@@ -67,7 +66,7 @@ public sealed class UserSettingsTests
     public void UpdateBaseCurrency_AllSupportedCurrencies_ShouldSucceed(string currency)
     {
         // Arrange
-        var settings = UserSettings.CreateDefault(_utcNow);
+        var settings = UserSettings.CreateDefault(Guid.NewGuid(), _utcNow);
 
         // Act
         settings.UpdateBaseCurrency(currency, _utcNow);

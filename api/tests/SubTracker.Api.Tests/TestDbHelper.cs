@@ -15,7 +15,9 @@ public static class TestDbHelper
     [
         "20260208205204_InitialCreate",
         "20260224131838_AddLastNotifiedAt",
-        "20260303161731_AddExchangeRatesAndUserSettings"
+        "20260303161731_AddExchangeRatesAndUserSettings",
+        "20260316001626_AddMultiUserSupport",
+        "20260316001755_MakeUserIdRequired"
     ];
 
     public static SqliteConnection CreateConnection()
@@ -41,6 +43,13 @@ public static class TestDbHelper
                 "INSERT INTO __EFMigrationsHistory (MigrationId, ProductVersion) VALUES ({0}, {1})",
                 migration, "10.0.2");
         }
+
+        // Seed a placeholder user for endpoints that use Guid.Empty as userId
+        // (until JWT auth is integrated and endpoints extract userId from claims)
+        db.Database.ExecuteSqlRaw(
+            "INSERT INTO Users (Id, Email, PasswordHash, Role, CreatedAt, UpdatedAt) VALUES ({0}, {1}, {2}, {3}, {4}, {5})",
+            "00000000-0000-0000-0000-000000000000", "placeholder@test.local", "$2a$12$placeholder", "User",
+            DateTime.UtcNow.ToString("o"), DateTime.UtcNow.ToString("o"));
 
         return connection;
     }

@@ -1,4 +1,6 @@
+using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using SubTracker.Api.Features.Auth.Domain;
 using SubTracker.Api.Features.Auth.Services;
 using SubTracker.Api.Features.Settings.Domain;
@@ -10,32 +12,82 @@ public static class DatabaseSeeder
 {
     public static async Task SeedAsync(AppDbContext db)
     {
-        // Seed default admin user if no users exist
-        Guid userId;
-        if (!await db.Users.AnyAsync())
+        var userId = await EnsureAdminUserAsync(db);
+        await MigrateOrphanedRecordsAsync(db, userId);
+        await EnsureUserSettingsAsync(db, userId);
+        await SeedDemoSubscriptionsAsync(db, userId);
+    }
+
+    private static async Task<Guid> EnsureAdminUserAsync(AppDbContext db)
+    {
+        if (await db.Users.AnyAsync())
+            return await db.Users
+                .Where(u => u.Role == UserRole.Admin)
+                .Select(u => u.Id)
+                .FirstAsync();
+
+        var password = GenerateSecurePassword(16);
+        var passwordService = new PasswordService();
+
+        var admin = User.Create(
+            "admin@subtracker.local",
+            passwordService.Hash(password),
+            UserRole.Admin,
+            DateTime.UtcNow);
+
+        db.Users.Add(admin);
+        await db.SaveChangesAsync();
+
+        Log.Warning(
+            "Default admin created — Email: {Email}, Password: {Password}. CHANGE THIS IMMEDIATELY.",
+            "admin@subtracker.local",
+            password);
+
+        return admin.Id;
+    }
+
+    private static async Task MigrateOrphanedRecordsAsync(AppDbContext db, Guid adminUserId)
+    {
+        // Assign orphaned Subscriptions to the admin user
+        var orphanedSubscriptions = await db.Subscriptions
+            .Where(s => s.UserId == Guid.Empty)
+            .ToListAsync();
+
+        if (orphanedSubscriptions.Count > 0)
         {
-            var passwordService = new PasswordService();
-            var defaultUser = User.Create(
-                "admin@subtracker.local",
-                passwordService.Hash("admin"),
-                UserRole.Admin,
-                DateTime.UtcNow);
-            db.Users.Add(defaultUser);
-            await db.SaveChangesAsync();
-            userId = defaultUser.Id;
-        }
-        else
-        {
-            userId = await db.Users.Select(u => u.Id).FirstAsync();
+            await db.Subscriptions
+                .Where(s => s.UserId == Guid.Empty)
+                .ExecuteUpdateAsync(s => s.SetProperty(x => x.UserId, adminUserId));
+
+            Log.Information("Migrated {Count} orphaned subscriptions to admin user", orphanedSubscriptions.Count);
         }
 
-        // Seed UserSettings if not present
-        if (!await db.UserSettings.AnyAsync())
+        // Assign orphaned UserSettings to the admin user
+        var orphanedSettings = await db.UserSettings
+            .Where(s => s.UserId == Guid.Empty)
+            .ToListAsync();
+
+        if (orphanedSettings.Count > 0)
         {
-            db.UserSettings.Add(UserSettings.CreateDefault(DateTime.UtcNow));
+            await db.UserSettings
+                .Where(s => s.UserId == Guid.Empty)
+                .ExecuteUpdateAsync(s => s.SetProperty(x => x.UserId, adminUserId));
+
+            Log.Information("Migrated {Count} orphaned user settings to admin user", orphanedSettings.Count);
+        }
+    }
+
+    private static async Task EnsureUserSettingsAsync(AppDbContext db, Guid userId)
+    {
+        if (!await db.UserSettings.AnyAsync(s => s.UserId == userId))
+        {
+            db.UserSettings.Add(UserSettings.CreateDefault(userId, DateTime.UtcNow));
             await db.SaveChangesAsync();
         }
+    }
 
+    private static async Task SeedDemoSubscriptionsAsync(AppDbContext db, Guid userId)
+    {
         if (await db.Subscriptions.AnyAsync())
             return;
 
@@ -360,5 +412,11 @@ public static class DatabaseSeeder
 
         db.Subscriptions.AddRange(inactiveSubscriptions);
         await db.SaveChangesAsync();
+    }
+
+    private static string GenerateSecurePassword(int length)
+    {
+        const string chars = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&*";
+        return RandomNumberGenerator.GetString(chars, length);
     }
 }

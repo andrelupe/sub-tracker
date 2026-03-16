@@ -1,14 +1,11 @@
 using System.Net;
-using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using SubTracker.Api.Database;
 
 namespace SubTracker.Api.Tests.Features.Settings;
@@ -17,8 +14,7 @@ public sealed class SettingsEndpointTests
 {
     private static (HttpClient client, SqliteConnection connection) CreateTestClient()
     {
-        var connection = new SqliteConnection("DataSource=:memory:");
-        connection.Open();
+        var connection = TestDbHelper.CreateConnection();
 
         var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
@@ -36,7 +32,8 @@ public sealed class SettingsEndpointTests
                     services.Remove(descriptor);
 
                 services.AddDbContext<AppDbContext>(options =>
-                    options.UseSqlite(connection));
+                    options.UseSqlite(connection)
+                        .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
             });
         });
 

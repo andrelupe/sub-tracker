@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using SubTracker.Api.Database;
 
 namespace SubTracker.Api.Tests.Common.Middleware;
@@ -16,8 +17,7 @@ public sealed class ApiKeyMiddlewareTests
 
     private static (HttpClient client, SqliteConnection connection) CreateTestClient(string? apiKey)
     {
-        var connection = new SqliteConnection("DataSource=:memory:");
-        connection.Open();
+        var connection = TestDbHelper.CreateConnection();
 
         var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
@@ -35,7 +35,8 @@ public sealed class ApiKeyMiddlewareTests
                     services.Remove(descriptor);
 
                 services.AddDbContext<AppDbContext>(options =>
-                    options.UseSqlite(connection));
+                    options.UseSqlite(connection)
+                        .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
             });
         });
 

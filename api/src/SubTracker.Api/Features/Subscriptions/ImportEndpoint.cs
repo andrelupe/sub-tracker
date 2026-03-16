@@ -73,6 +73,8 @@ public sealed class ImportEndpoint : Endpoint<ImportEndpoint.Request, ImportEndp
             }
 
             // Create entity (but don't add to DbContext yet)
+            // TODO: Replace with User.GetUserId() from JWT claims when auth is integrated
+            var userId = Guid.Empty;
             var subscription = Subscription.Create(
                 dto.Name,
                 dto.Description,
@@ -83,6 +85,7 @@ public sealed class ImportEndpoint : Endpoint<ImportEndpoint.Request, ImportEndp
                 dto.StartDate,
                 dto.Url,
                 dto.ReminderDaysBefore,
+                userId,
                 _dateTime.UtcNow
             );
 

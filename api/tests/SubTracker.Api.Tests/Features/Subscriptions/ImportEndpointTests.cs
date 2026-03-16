@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SubTracker.Api.Common;
 using SubTracker.Api.Database;
+using SubTracker.Api.Features.Auth.Domain;
 using SubTracker.Api.Features.Subscriptions.Domain;
 using static SubTracker.Api.Features.Subscriptions.ImportEndpoint;
 
@@ -11,6 +12,7 @@ public class ImportEndpointTests : IDisposable
     private readonly DateTime _utcNow = new(2026, 2, 6, 12, 0, 0, DateTimeKind.Utc);
     private readonly AppDbContext _db;
     private readonly FakeDateTimeProvider _dateTime;
+    private readonly Guid _userId;
 
     public ImportEndpointTests()
     {
@@ -21,6 +23,12 @@ public class ImportEndpointTests : IDisposable
         _db = new AppDbContext(options);
         _db.Database.OpenConnection();
         _db.Database.EnsureCreated();
+
+        // Create a test user for FK constraints
+        var user = User.Create("test@example.com", "hash", UserRole.User, _utcNow);
+        _db.Users.Add(user);
+        _db.SaveChanges();
+        _userId = user.Id;
 
         _dateTime = new FakeDateTimeProvider(_utcNow);
     }
@@ -59,6 +67,7 @@ public class ImportEndpointTests : IDisposable
                 dto.StartDate,
                 dto.Url,
                 dto.ReminderDaysBefore,
+                _userId,
                 _dateTime.UtcNow
             );
 
@@ -798,6 +807,7 @@ public class ImportEndpointTests : IDisposable
             new DateTime(2024, 1, 1),
             null,
             2,
+            _userId,
             _utcNow
         );
         _db.Subscriptions.Add(existing);

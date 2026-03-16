@@ -68,6 +68,8 @@ public sealed class CreateEndpoint : Endpoint<CreateEndpoint.Request, CreateEndp
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
+        // TODO: Replace with User.GetUserId() from JWT claims when auth is integrated
+        var userId = Guid.Empty;
         var subscription = Subscription.Create(
             req.Name,
             req.Description,
@@ -78,6 +80,7 @@ public sealed class CreateEndpoint : Endpoint<CreateEndpoint.Request, CreateEndp
             req.StartDate,
             req.Url,
             req.ReminderDaysBefore,
+            userId,
             _dateTime.UtcNow
         );
 

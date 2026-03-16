@@ -12,6 +12,7 @@ public sealed class Subscription
     public DateTime StartDate { get; private set; }
     public DateTime NextBillingDate { get; private set; }
     public bool IsActive { get; private set; } = true;
+    public Guid UserId { get; private set; }
     public string? Url { get; private set; }
     public int ReminderDaysBefore { get; private set; } = 2;
     /// <summary>
@@ -34,6 +35,7 @@ public sealed class Subscription
         DateTime startDate,
         string? url,
         int reminderDaysBefore,
+        Guid userId,
         DateTime utcNow)
     {
         return new Subscription
@@ -47,6 +49,7 @@ public sealed class Subscription
             Category = category,
             StartDate = startDate,
             NextBillingDate = CalculateNextBillingDate(startDate, billingCycle, utcNow),
+            UserId = userId,
             Url = url,
             ReminderDaysBefore = reminderDaysBefore,
             CreatedAt = utcNow,

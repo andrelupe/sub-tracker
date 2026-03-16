@@ -20,6 +20,7 @@ public class SubscriptionTests
             startDate: new DateTime(2026, 1, 1),
             url: "https://netflix.com",
             reminderDaysBefore: 3,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow
         );
 
@@ -53,6 +54,7 @@ public class SubscriptionTests
             startDate: startDate,
             url: null,
             reminderDaysBefore: 2,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow
         );
 
@@ -77,6 +79,7 @@ public class SubscriptionTests
             startDate: startDate,
             url: null,
             reminderDaysBefore: 1,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow
         );
 
@@ -101,6 +104,7 @@ public class SubscriptionTests
             startDate: startDate,
             url: null,
             reminderDaysBefore: 7,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow
         );
 
@@ -122,6 +126,7 @@ public class SubscriptionTests
             startDate: new DateTime(2026, 1, 1),
             url: null,
             reminderDaysBefore: 2,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow
         );
 
@@ -166,6 +171,7 @@ public class SubscriptionTests
             startDate: new DateTime(2026, 1, 8), // Next billing Feb 8
             url: null,
             reminderDaysBefore: 3,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow // Feb 6
         );
 
@@ -187,6 +193,7 @@ public class SubscriptionTests
             startDate: new DateTime(2026, 1, 16), // Next billing Feb 16
             url: null,
             reminderDaysBefore: 3,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow // Feb 6
         );
 
@@ -208,6 +215,7 @@ public class SubscriptionTests
             startDate: new DateTime(2026, 1, 8), // Next billing Feb 8
             url: null,
             reminderDaysBefore: 3,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow
         );
 
@@ -237,6 +245,7 @@ public class SubscriptionTests
             startDate: new DateTime(2026, 1, 8), // Next billing Feb 8
             url: null,
             reminderDaysBefore: 3,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow // Feb 6
         );
 
@@ -261,6 +270,7 @@ public class SubscriptionTests
             startDate: new DateTime(2026, 1, 8), // Next billing Feb 8
             url: null,
             reminderDaysBefore: 2,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow // Feb 6
         );
 
@@ -283,6 +293,7 @@ public class SubscriptionTests
             startDate: new DateTime(2026, 1, 8), // Next billing Feb 8
             url: null,
             reminderDaysBefore: 3,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow // Feb 6
         );
 
@@ -305,6 +316,7 @@ public class SubscriptionTests
             startDate: new DateTime(2026, 1, 8), // Next billing Feb 8
             url: null,
             reminderDaysBefore: 3,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow // Feb 6
         );
 
@@ -330,6 +342,7 @@ public class SubscriptionTests
             startDate: new DateTime(2026, 1, 8), // Next billing Feb 8
             url: null,
             reminderDaysBefore: 3,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow // Feb 6
         );
 
@@ -354,6 +367,7 @@ public class SubscriptionTests
             startDate: new DateTime(2026, 1, 16), // Next billing Feb 16
             url: null,
             reminderDaysBefore: 3,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow // Feb 6
         );
 
@@ -375,6 +389,7 @@ public class SubscriptionTests
             startDate: new DateTime(2026, 1, 8),
             url: null,
             reminderDaysBefore: 3,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow
         );
 
@@ -401,6 +416,7 @@ public class SubscriptionTests
             startDate: new DateTime(2026, 1, 8), // Next billing Feb 8
             url: null,
             reminderDaysBefore: 3,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow
         );
 
@@ -423,6 +439,7 @@ public class SubscriptionTests
             startDate: new DateTime(2026, 1, 8), // Next billing Feb 8
             url: null,
             reminderDaysBefore: 3,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow // Feb 6
         );
 
@@ -444,6 +461,7 @@ public class SubscriptionTests
             startDate: new DateTime(2026, 1, 8),
             url: null,
             reminderDaysBefore: 3,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow
         );
         subscription.Deactivate(_utcNow);
@@ -467,6 +485,7 @@ public class SubscriptionTests
             startDate: new DateTime(2026, 1, 8), // Next billing Feb 8
             url: null,
             reminderDaysBefore: 3,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow
         );
 
@@ -494,6 +513,7 @@ public class SubscriptionTests
             startDate: new DateTime(2026, 2, 1), // Next billing Feb 8
             url: null,
             reminderDaysBefore: 1,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow
         );
 
@@ -521,6 +541,7 @@ public class SubscriptionTests
             startDate: new DateTime(2025, 3, 1), // Next billing Mar 1 2026
             url: null,
             reminderDaysBefore: 7,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow
         );
 
@@ -551,6 +572,7 @@ public class SubscriptionTests
             startDate: startDate,
             url: null,
             reminderDaysBefore: 14,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow // Feb 6 2026
         );
 
@@ -577,6 +599,7 @@ public class SubscriptionTests
             startDate: new DateTime(2025, 8, 8), // Next billing Feb 8 2026
             url: null,
             reminderDaysBefore: 3,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow // Feb 6
         );
 
@@ -599,6 +622,7 @@ public class SubscriptionTests
             startDate: new DateTime(2025, 8, 8), // Next billing Feb 8 2026
             url: null,
             reminderDaysBefore: 14,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow
         );
 
@@ -627,6 +651,7 @@ public class SubscriptionTests
             startDate: new DateTime(2025, 3, 1), // Next billing Mar 1 2026
             url: null,
             reminderDaysBefore: 7,
+            userId: Guid.NewGuid(),
             utcNow: _utcNow
         );
 

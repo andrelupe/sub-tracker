@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using SubTracker.Api.Features.Auth.Domain;
+using SubTracker.Api.Features.Auth.Services;
 using SubTracker.Api.Features.Settings.Domain;
 using SubTracker.Api.Features.Subscriptions.Domain;
 
@@ -8,6 +10,25 @@ public static class DatabaseSeeder
 {
     public static async Task SeedAsync(AppDbContext db)
     {
+        // Seed default admin user if no users exist
+        Guid userId;
+        if (!await db.Users.AnyAsync())
+        {
+            var passwordService = new PasswordService();
+            var defaultUser = User.Create(
+                "admin@subtracker.local",
+                passwordService.Hash("admin"),
+                UserRole.Admin,
+                DateTime.UtcNow);
+            db.Users.Add(defaultUser);
+            await db.SaveChangesAsync();
+            userId = defaultUser.Id;
+        }
+        else
+        {
+            userId = await db.Users.Select(u => u.Id).FirstAsync();
+        }
+
         // Seed UserSettings if not present
         if (!await db.UserSettings.AnyAsync())
         {
@@ -34,6 +55,7 @@ public static class DatabaseSeeder
                 startDate: utcNow.AddMonths(-6).AddDays(-3),
                 url: "https://netflix.com",
                 reminderDaysBefore: 3,
+                userId: userId,
                 utcNow: utcNow),
 
             Subscription.Create(
@@ -46,6 +68,7 @@ public static class DatabaseSeeder
                 startDate: utcNow.AddMonths(-14).AddDays(-10),
                 url: "https://spotify.com",
                 reminderDaysBefore: 2,
+                userId: userId,
                 utcNow: utcNow),
 
             Subscription.Create(
@@ -58,6 +81,7 @@ public static class DatabaseSeeder
                 startDate: utcNow.AddMonths(-24).AddDays(-1),
                 url: "https://apple.com/icloud",
                 reminderDaysBefore: 2,
+                userId: userId,
                 utcNow: utcNow),
 
             Subscription.Create(
@@ -70,6 +94,7 @@ public static class DatabaseSeeder
                 startDate: utcNow.AddMonths(-8).AddDays(-15),
                 url: "https://adobe.com",
                 reminderDaysBefore: 5,
+                userId: userId,
                 utcNow: utcNow),
 
             Subscription.Create(
@@ -82,6 +107,7 @@ public static class DatabaseSeeder
                 startDate: utcNow.AddMonths(-30).AddDays(-5),
                 url: "https://github.com",
                 reminderDaysBefore: 2,
+                userId: userId,
                 utcNow: utcNow),
 
             Subscription.Create(
@@ -94,6 +120,7 @@ public static class DatabaseSeeder
                 startDate: utcNow.AddMonths(-10).AddDays(-7),
                 url: "https://chat.openai.com",
                 reminderDaysBefore: 3,
+                userId: userId,
                 utcNow: utcNow),
 
             Subscription.Create(
@@ -106,6 +133,7 @@ public static class DatabaseSeeder
                 startDate: utcNow.AddMonths(-4).AddDays(-20),
                 url: "https://nintendo.com",
                 reminderDaysBefore: 7,
+                userId: userId,
                 utcNow: utcNow),
 
             Subscription.Create(
@@ -118,6 +146,7 @@ public static class DatabaseSeeder
                 startDate: utcNow.AddMonths(-5).AddDays(-12),
                 url: "https://economist.com",
                 reminderDaysBefore: 7,
+                userId: userId,
                 utcNow: utcNow),
 
             Subscription.Create(
@@ -130,6 +159,7 @@ public static class DatabaseSeeder
                 startDate: utcNow.AddMonths(-2).AddDays(-8),
                 url: "https://strava.com",
                 reminderDaysBefore: 14,
+                userId: userId,
                 utcNow: utcNow),
 
             Subscription.Create(
@@ -142,6 +172,7 @@ public static class DatabaseSeeder
                 startDate: utcNow.AddMonths(-3).AddDays(-18),
                 url: "https://coursera.org",
                 reminderDaysBefore: 5,
+                userId: userId,
                 utcNow: utcNow),
 
             Subscription.Create(
@@ -154,6 +185,7 @@ public static class DatabaseSeeder
                 startDate: utcNow.AddMonths(-7).AddDays(-2),
                 url: "https://nordvpn.com",
                 reminderDaysBefore: 14,
+                userId: userId,
                 utcNow: utcNow),
 
             Subscription.Create(
@@ -166,6 +198,7 @@ public static class DatabaseSeeder
                 startDate: utcNow.AddMonths(-11).AddDays(-6),
                 url: "https://youtube.com/premium",
                 reminderDaysBefore: 2,
+                userId: userId,
                 utcNow: utcNow),
 
             Subscription.Create(
@@ -178,6 +211,7 @@ public static class DatabaseSeeder
                 startDate: utcNow.AddMonths(-3).AddDays(-10),
                 url: null,
                 reminderDaysBefore: 14,
+                userId: userId,
                 utcNow: utcNow),
         };
 
@@ -195,6 +229,7 @@ public static class DatabaseSeeder
             startDate: utcNow.AddDays(1).AddMonths(-3), // NextBillingDate = tomorrow
             url: "https://claude.ai",
             reminderDaysBefore: 3,
+            userId: userId,
             utcNow: utcNow);
         alreadyNotified.MarkNotified(utcNow.AddHours(-2)); // Notified 2 hours ago
         db.Subscriptions.Add(alreadyNotified);
@@ -211,6 +246,7 @@ public static class DatabaseSeeder
             startDate: utcNow.AddDays(1).AddMonths(-5), // NextBillingDate = tomorrow
             url: "https://notion.so",
             reminderDaysBefore: 3,
+            userId: userId,
             utcNow: utcNow);
         notifiedPreviousCycle.MarkNotified(utcNow.AddMonths(-1).AddDays(-5)); // Notified in previous cycle
         db.Subscriptions.Add(notifiedPreviousCycle);
@@ -227,6 +263,7 @@ public static class DatabaseSeeder
             startDate: utcNow.AddDays(2).AddMonths(-2), // NextBillingDate = in 2 days
             url: "https://linear.app",
             reminderDaysBefore: 3,
+            userId: userId,
             utcNow: utcNow);
         // LastNotifiedAt stays null
         db.Subscriptions.Add(neverNotified);
@@ -243,6 +280,7 @@ public static class DatabaseSeeder
             startDate: utcNow.AddDays(-5).AddMonths(-3), // NextBillingDate = 5 days ago
             url: "https://dropbox.com",
             reminderDaysBefore: 2,
+            userId: userId,
             utcNow: utcNow.AddMonths(-1)); // Create "as if" a month ago, so NextBillingDate is in the past
         db.Subscriptions.Add(pastDueMonthly);
 
@@ -256,6 +294,7 @@ public static class DatabaseSeeder
             startDate: utcNow.AddDays(-10), // NextBillingDate = 3 days ago
             url: "https://theathletic.com",
             reminderDaysBefore: 1,
+            userId: userId,
             utcNow: utcNow.AddDays(-10)); // Create "as if" 10 days ago, so NextBillingDate is in the past
         db.Subscriptions.Add(pastDueWeekly);
 
@@ -273,6 +312,7 @@ public static class DatabaseSeeder
                 startDate: utcNow.AddMonths(-4).AddDays(-10),
                 url: "https://max.com",
                 reminderDaysBefore: 2,
+                userId: userId,
                 utcNow: utcNow),
 
             Subscription.Create(
@@ -285,6 +325,7 @@ public static class DatabaseSeeder
                 startDate: utcNow.AddMonths(-8).AddDays(-5),
                 url: "https://duolingo.com",
                 reminderDaysBefore: 2,
+                userId: userId,
                 utcNow: utcNow),
 
             Subscription.Create(
@@ -297,6 +338,7 @@ public static class DatabaseSeeder
                 startDate: utcNow.AddMonths(-10).AddDays(-14),
                 url: "https://disneyplus.com",
                 reminderDaysBefore: 7,
+                userId: userId,
                 utcNow: utcNow),
         };
 

@@ -30,6 +30,7 @@ public sealed class GetByIdEndpoint : Endpoint<GetByIdEndpoint.Request, Subscrip
         if (subscription is null)
         {
             await Send.NotFoundAsync(ct);
+
             return;
         }
 

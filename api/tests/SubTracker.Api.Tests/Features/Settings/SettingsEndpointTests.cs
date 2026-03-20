@@ -4,8 +4,8 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using SubTracker.Api.Database;
 
 namespace SubTracker.Api.Tests.Features.Settings;
@@ -26,8 +26,7 @@ public sealed class SettingsEndpointTests
                 // Remove background jobs to avoid race conditions with DB
                 services.RemoveAll<IHostedService>();
 
-                var descriptor = services.SingleOrDefault(
-                    d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
                 if (descriptor is not null)
                     services.Remove(descriptor);
 

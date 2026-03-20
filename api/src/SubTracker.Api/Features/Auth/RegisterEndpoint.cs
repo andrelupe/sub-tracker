@@ -70,6 +70,7 @@ public sealed class RegisterEndpoint : Endpoint<RegisterEndpoint.Request, AuthRe
         if (await _db.Users.AnyAsync(u => u.Email == normalizedEmail, ct))
         {
             await HttpContext.Response.SendAsync(new { error = "Email is already registered" }, 409, cancellation: ct);
+
             return;
         }
 

@@ -15,11 +15,13 @@ public sealed class Subscription
     public Guid UserId { get; private set; }
     public string? Url { get; private set; }
     public int ReminderDaysBefore { get; private set; } = 2;
+
     /// <summary>
     /// Last time a notification was sent for this subscription.
     /// Used to prevent duplicate notifications within the same billing cycle.
     /// </summary>
     public DateTime? LastNotifiedAt { get; private set; }
+
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
@@ -100,6 +102,7 @@ public sealed class Subscription
         if (!IsActive) return false;
 
         var daysUntilBilling = (NextBillingDate.Date - utcNow.Date).TotalDays;
+
         return daysUntilBilling >= 0 && daysUntilBilling <= ReminderDaysBefore;
     }
 
@@ -115,6 +118,7 @@ public sealed class Subscription
         if (LastNotifiedAt is null) return true;
 
         var cycleStart = GetCycleStartDate();
+
         return LastNotifiedAt.Value < cycleStart;
     }
 
@@ -163,6 +167,7 @@ public sealed class Subscription
         DateTime utcNow)
     {
         var next = startDate;
+
         while (next <= utcNow)
         {
             next = cycle switch
@@ -175,6 +180,7 @@ public sealed class Subscription
                 _ => next.AddMonths(1)
             };
         }
+
         return next;
     }
 }

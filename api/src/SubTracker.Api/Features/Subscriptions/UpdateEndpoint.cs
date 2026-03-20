@@ -74,6 +74,7 @@ public sealed class UpdateEndpoint : Endpoint<UpdateEndpoint.Request>
         if (subscription is null)
         {
             await Send.NotFoundAsync(ct);
+
             return;
         }
 
@@ -92,12 +93,12 @@ public sealed class UpdateEndpoint : Endpoint<UpdateEndpoint.Request>
         );
 
         await _db.SaveChangesAsync(ct);
-        
+
         _logger.LogInformation(
             "Subscription updated: {SubscriptionId} ({SubscriptionName})",
             subscription.Id,
             subscription.Name);
-        
+
         await Send.NoContentAsync(ct);
     }
 }

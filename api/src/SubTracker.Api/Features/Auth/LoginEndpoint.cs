@@ -68,6 +68,7 @@ public sealed class LoginEndpoint : Endpoint<LoginEndpoint.Request, AuthResponse
         if (user is null || !_password.Verify(req.Password, user.PasswordHash))
         {
             await HttpContext.Response.SendAsync(new { error = "Invalid email or password" }, 401, cancellation: ct);
+
             return;
         }
 

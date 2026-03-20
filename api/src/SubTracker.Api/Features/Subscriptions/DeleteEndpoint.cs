@@ -34,16 +34,17 @@ public sealed class DeleteEndpoint : Endpoint<DeleteEndpoint.Request>
         if (subscription is null)
         {
             await Send.NotFoundAsync(ct);
+
             return;
         }
 
         _db.Subscriptions.Remove(subscription);
         await _db.SaveChangesAsync(ct);
-        
+
         _logger.LogInformation(
             "Subscription deleted: {SubscriptionId}",
             req.Id);
-        
+
         await Send.NoContentAsync(ct);
     }
 }

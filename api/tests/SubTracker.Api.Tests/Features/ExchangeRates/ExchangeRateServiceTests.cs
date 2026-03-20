@@ -1,9 +1,8 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Data.Sqlite;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using SubTracker.Api.Common;
 using SubTracker.Api.Database;
@@ -101,6 +100,7 @@ public sealed class ExchangeRateServiceTests : IDisposable
     {
         // Arrange — seed stale rates in DB
         var staleTime = _utcNow.AddHours(-25);
+
         using (var scope = _serviceProvider.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -130,6 +130,7 @@ public sealed class ExchangeRateServiceTests : IDisposable
     {
         // Arrange — seed stale rates in DB
         var staleTime = _utcNow.AddHours(-25);
+
         using (var scope = _serviceProvider.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();

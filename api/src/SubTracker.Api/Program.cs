@@ -1,6 +1,5 @@
 using System.Text;
 using FastEndpoints;
-using Microsoft.Extensions.Http.Resilience;
 using FastEndpoints.Swagger;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -121,6 +120,7 @@ try
 catch (Exception ex)
 {
     Log.Fatal(ex, "SubTracker API terminated unexpectedly");
+
     throw;
 }
 finally

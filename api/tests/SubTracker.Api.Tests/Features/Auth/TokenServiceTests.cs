@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Microsoft.Extensions.Configuration;
 using SubTracker.Api.Features.Auth.Domain;
 using SubTracker.Api.Features.Auth.Services;
 

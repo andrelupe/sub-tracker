@@ -21,7 +21,7 @@ public sealed class CheckDueSubscriptionsJob : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("CheckDueSubscriptionsJob started. Running every {IntervalMinutes} minutes", _interval.TotalMinutes);
-        
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -35,7 +35,7 @@ public sealed class CheckDueSubscriptionsJob : BackgroundService
 
             await Task.Delay(_interval, stoppingToken);
         }
-        
+
         _logger.LogInformation("CheckDueSubscriptionsJob stopped");
     }
 
@@ -43,7 +43,7 @@ public sealed class CheckDueSubscriptionsJob : BackgroundService
     {
         _logger.LogInformation("Notification job started");
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        
+
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var notifications = scope.ServiceProvider.GetRequiredService<INotificationService>();
@@ -86,7 +86,7 @@ public sealed class CheckDueSubscriptionsJob : BackgroundService
                     "Notification sent for subscription {SubscriptionId} ({SubscriptionName})",
                     sub.Id,
                     sub.Name);
-                
+
                 successCount++;
             }
             catch (Exception ex)
@@ -96,7 +96,7 @@ public sealed class CheckDueSubscriptionsJob : BackgroundService
                     "Failed to send notification for subscription {SubscriptionId} ({SubscriptionName})",
                     sub.Id,
                     sub.Name);
-                
+
                 failureCount++;
             }
         }
@@ -104,7 +104,7 @@ public sealed class CheckDueSubscriptionsJob : BackgroundService
         await db.SaveChangesAsync(ct);
 
         stopwatch.Stop();
-        
+
         _logger.LogInformation(
             "Notification job completed in {ElapsedMs}ms. Sent: {SuccessCount}, Failed: {FailureCount}",
             stopwatch.ElapsedMilliseconds,

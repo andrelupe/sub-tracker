@@ -53,6 +53,7 @@ public sealed class ExchangeRateService : IExchangeRateService
             if (response is not null)
             {
                 await PersistRatesAsync(db, baseCurrency, response.Rates, response.Date, utcNow, ct);
+
                 return response.Rates;
             }
         }
@@ -82,6 +83,7 @@ public sealed class ExchangeRateService : IExchangeRateService
         if (from != "EUR" && to != "EUR")
         {
             var fromEurRates = await GetRatesAsync("EUR", ct);
+
             if (fromEurRates.TryGetValue(from, out var eurToFrom) &&
                 fromEurRates.TryGetValue(to, out var eurToTo) &&
                 eurToFrom > 0)
@@ -91,6 +93,7 @@ public sealed class ExchangeRateService : IExchangeRateService
         }
 
         _logger.LogWarning("No exchange rate found for {From} -> {To}, returning original amount", from, to);
+
         return amount;
     }
 

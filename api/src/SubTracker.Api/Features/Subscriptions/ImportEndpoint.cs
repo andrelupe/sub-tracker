@@ -66,9 +66,11 @@ public sealed class ImportEndpoint : Endpoint<ImportEndpoint.Request, ImportEndp
             var dto = req.Subscriptions[i];
 
             var validationError = Validate(dto);
+
             if (validationError is not null)
             {
                 errors.Add(new ImportError { Index = i, Message = validationError });
+
                 continue;
             }
 
@@ -103,6 +105,7 @@ public sealed class ImportEndpoint : Endpoint<ImportEndpoint.Request, ImportEndp
                 Imported = 0,
                 Errors = errors
             }, ct);
+
             return;
         }
 

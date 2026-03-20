@@ -25,6 +25,7 @@ public sealed class ApiKeyMiddleware
         if (string.IsNullOrEmpty(_apiKey))
         {
             await _next(context);
+
             return;
         }
 
@@ -33,6 +34,7 @@ public sealed class ApiKeyMiddleware
         if (IsExcludedPath(path))
         {
             await _next(context);
+
             return;
         }
 
@@ -47,6 +49,7 @@ public sealed class ApiKeyMiddleware
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsync("{\"error\":\"Invalid API key\"}");
+
             return;
         }
 

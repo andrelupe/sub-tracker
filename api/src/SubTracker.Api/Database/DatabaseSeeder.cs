@@ -417,6 +417,7 @@ public static class DatabaseSeeder
     private static string GenerateSecurePassword(int length)
     {
         const string chars = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&*";
+
         return RandomNumberGenerator.GetString(chars, length);
     }
 }

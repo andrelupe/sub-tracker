@@ -6,9 +6,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
 using SubTracker.Api.Database;
 using SubTracker.Api.Features.Auth.Domain;
 using SubTracker.Api.Features.Auth.Services;
@@ -40,8 +38,7 @@ public sealed class AuthEndpointTests : IDisposable
             {
                 services.RemoveAll<IHostedService>();
 
-                var descriptor = services.SingleOrDefault(
-                    d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
                 if (descriptor is not null)
                     services.Remove(descriptor);
 
@@ -70,6 +67,7 @@ public sealed class AuthEndpointTests : IDisposable
         var response = await _client.PostAsync("/api/auth/register", JsonContent(payload));
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
+
         return JsonSerializer.Deserialize<AuthResponseDto>(content, JsonOptions)!;
     }
 
@@ -79,6 +77,7 @@ public sealed class AuthEndpointTests : IDisposable
         var response = await _client.PostAsync("/api/auth/login", JsonContent(payload));
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
+
         return JsonSerializer.Deserialize<AuthResponseDto>(content, JsonOptions)!;
     }
 
@@ -393,6 +392,7 @@ public sealed class AuthEndpointTests : IDisposable
             JsonContent(new { email = "admin@test.com", password = "password123" }));
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
+
         return JsonSerializer.Deserialize<AuthResponseDto>(content, JsonOptions)!;
     }
 

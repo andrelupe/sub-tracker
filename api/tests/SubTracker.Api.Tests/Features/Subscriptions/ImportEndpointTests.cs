@@ -51,9 +51,11 @@ public class ImportEndpointTests : IDisposable
             var dto = req.Subscriptions[i];
 
             var validationError = ValidateDto(dto);
+
             if (validationError is not null)
             {
                 errors.Add(new ImportError { Index = i, Message = validationError });
+
                 continue;
             }
 

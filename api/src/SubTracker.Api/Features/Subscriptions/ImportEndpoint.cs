@@ -1,6 +1,8 @@
 using FastEndpoints;
 using SubTracker.Api.Common;
+using SubTracker.Api.Common.Extensions;
 using SubTracker.Api.Database;
+using SubTracker.Api.Features.Auth.Domain;
 using SubTracker.Api.Features.Subscriptions.Domain;
 
 namespace SubTracker.Api.Features.Subscriptions;
@@ -52,11 +54,12 @@ public sealed class ImportEndpoint : Endpoint<ImportEndpoint.Request, ImportEndp
     public override void Configure()
     {
         Post("/api/subscriptions/import");
-        AllowAnonymous();
+        Roles(UserRole.Admin.ToString(), UserRole.User.ToString());
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
+        var userId = User.GetUserId();
         var errors = new List<ImportError>();
         var subscriptionsToCreate = new List<Subscription>();
 
@@ -75,8 +78,6 @@ public sealed class ImportEndpoint : Endpoint<ImportEndpoint.Request, ImportEndp
             }
 
             // Create entity (but don't add to DbContext yet)
-            // TODO: Replace with User.GetUserId() from JWT claims when auth is integrated
-            var userId = Guid.Empty;
             var subscription = Subscription.Create(
                 dto.Name,
                 dto.Description,

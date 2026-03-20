@@ -2,7 +2,9 @@ using FastEndpoints;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using SubTracker.Api.Common;
+using SubTracker.Api.Common.Extensions;
 using SubTracker.Api.Database;
+using SubTracker.Api.Features.Auth.Domain;
 using SubTracker.Api.Features.Settings.Domain;
 
 namespace SubTracker.Api.Features.Settings;
@@ -39,15 +41,14 @@ public sealed class UpdateSettingsEndpoint : Endpoint<UpdateSettingsEndpoint.Req
     public override void Configure()
     {
         Put("/api/settings");
-        AllowAnonymous();
+        Roles(UserRole.Admin.ToString(), UserRole.User.ToString());
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
         var utcNow = _dateTime.UtcNow;
 
-        // TODO: Replace with User.GetUserId() from JWT claims when auth is integrated
-        var userId = Guid.Empty;
+        var userId = User.GetUserId();
         var settings = await _db.UserSettings.FirstOrDefaultAsync(s => s.UserId == userId, ct);
 
         if (settings is null)

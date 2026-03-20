@@ -44,13 +44,6 @@ public static class TestDbHelper
                 migration, "10.0.2");
         }
 
-        // Seed a placeholder user for endpoints that use Guid.Empty as userId
-        // (until JWT auth is integrated and endpoints extract userId from claims)
-        db.Database.ExecuteSqlRaw(
-            "INSERT INTO Users (Id, Email, PasswordHash, Role, CreatedAt, UpdatedAt) VALUES ({0}, {1}, {2}, {3}, {4}, {5})",
-            "00000000-0000-0000-0000-000000000000", "placeholder@test.local", "$2a$12$placeholder", "User",
-            DateTime.UtcNow.ToString("o"), DateTime.UtcNow.ToString("o"));
-
         return connection;
     }
 }

@@ -1,7 +1,9 @@
 using FastEndpoints;
 using FluentValidation;
 using SubTracker.Api.Common;
+using SubTracker.Api.Common.Extensions;
 using SubTracker.Api.Database;
+using SubTracker.Api.Features.Auth.Domain;
 using SubTracker.Api.Features.Subscriptions.Domain;
 
 namespace SubTracker.Api.Features.Subscriptions;
@@ -63,13 +65,12 @@ public sealed class CreateEndpoint : Endpoint<CreateEndpoint.Request, CreateEndp
     public override void Configure()
     {
         Post("/api/subscriptions");
-        AllowAnonymous();
+        Roles(UserRole.Admin.ToString(), UserRole.User.ToString());
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
-        // TODO: Replace with User.GetUserId() from JWT claims when auth is integrated
-        var userId = Guid.Empty;
+        var userId = User.GetUserId();
         var subscription = Subscription.Create(
             req.Name,
             req.Description,

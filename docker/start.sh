@@ -20,10 +20,9 @@ if [ -n "$ENV_FILE" ]; then
   echo "Generating Flutter .env at $ENV_FILE"
   cat > "$ENV_FILE" <<EOF
 API_BASE_URL=${API_BASE_URL:-/api}
-API_KEY=${SUBTRACKER_API_KEY:-}
 EOF
 else
-  echo "WARNING: Flutter .env asset not found. API_KEY will not be injected."
+  echo "WARNING: Flutter .env asset not found."
 fi
 
 # ============================================

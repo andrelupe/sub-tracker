@@ -2,7 +2,9 @@ using FastEndpoints;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using SubTracker.Api.Common;
+using SubTracker.Api.Common.Extensions;
 using SubTracker.Api.Database;
+using SubTracker.Api.Features.Auth.Domain;
 using SubTracker.Api.Features.Subscriptions.Domain;
 
 namespace SubTracker.Api.Features.Subscriptions;
@@ -63,13 +65,15 @@ public sealed class UpdateEndpoint : Endpoint<UpdateEndpoint.Request>
     public override void Configure()
     {
         Put("/api/subscriptions/{Id}");
-        AllowAnonymous();
+        Roles(UserRole.Admin.ToString(), UserRole.User.ToString());
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
+        var userId = User.GetUserId();
+
         var subscription = await _db.Subscriptions
-            .FirstOrDefaultAsync(s => s.Id == req.Id, ct);
+            .FirstOrDefaultAsync(s => s.Id == req.Id && s.UserId == userId, ct);
 
         if (subscription is null)
         {

@@ -1,7 +1,9 @@
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using SubTracker.Api.Common;
+using SubTracker.Api.Common.Extensions;
 using SubTracker.Api.Database;
+using SubTracker.Api.Features.Auth.Domain;
 using SubTracker.Api.Features.Settings.Domain;
 
 namespace SubTracker.Api.Features.Settings;
@@ -26,13 +28,12 @@ public sealed class GetSettingsEndpoint : EndpointWithoutRequest<GetSettingsEndp
     public override void Configure()
     {
         Get("/api/settings");
-        AllowAnonymous();
+        Roles(UserRole.Admin.ToString(), UserRole.User.ToString());
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        // TODO: Replace with User.GetUserId() from JWT claims when auth is integrated
-        var userId = Guid.Empty;
+        var userId = User.GetUserId();
         var settings = await _db.UserSettings.FirstOrDefaultAsync(s => s.UserId == userId, ct);
 
         if (settings is null)

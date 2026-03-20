@@ -30,7 +30,7 @@ public sealed class GetRatesEndpoint : Endpoint<GetRatesEndpoint.Request, GetRat
     public override void Configure()
     {
         Get("/api/exchange-rates");
-        AllowAnonymous();
+        Roles(Auth.Domain.UserRole.Admin.ToString(), Auth.Domain.UserRole.User.ToString());
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)

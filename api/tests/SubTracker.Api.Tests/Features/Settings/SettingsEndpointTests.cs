@@ -7,23 +7,31 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using SubTracker.Api.Database;
+using SubTracker.Api.Features.Auth.Domain;
 
 namespace SubTracker.Api.Tests.Features.Settings;
 
-public sealed class SettingsEndpointTests
+public sealed class SettingsEndpointTests : IDisposable
 {
-    private static (HttpClient client, SqliteConnection connection) CreateTestClient()
-    {
-        var connection = TestDbHelper.CreateConnection();
+    private readonly SqliteConnection _connection;
+    private readonly HttpClient _client;
+    private readonly WebApplicationFactory<Program> _factory;
 
-        var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+    public SettingsEndpointTests()
+    {
+        _connection = TestDbHelper.CreateConnection();
+
+        _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment("Production");
-            builder.UseSetting("ApiKey", string.Empty);
+            builder.UseSetting("Jwt:Secret", "test-secret-key-that-is-at-least-32-characters-long");
+            builder.UseSetting("Jwt:Issuer", "SubTracker");
+            builder.UseSetting("Jwt:Audience", "SubTracker");
+            builder.UseSetting("Jwt:AccessTokenExpirationMinutes", "15");
+            builder.UseSetting("Jwt:RefreshTokenExpirationDays", "30");
 
             builder.ConfigureServices(services =>
             {
-                // Remove background jobs to avoid race conditions with DB
                 services.RemoveAll<IHostedService>();
 
                 var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
@@ -31,23 +39,37 @@ public sealed class SettingsEndpointTests
                     services.Remove(descriptor);
 
                 services.AddDbContext<AppDbContext>(options =>
-                    options.UseSqlite(connection)
+                    options.UseSqlite(_connection)
                         .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
             });
         });
 
-        return (factory.CreateClient(), connection);
+        _client = _factory.CreateClient();
+    }
+
+    public void Dispose()
+    {
+        _client.Dispose();
+        _factory.Dispose();
+        _connection.Dispose();
+    }
+
+    private async Task<TestAuthHelper.AuthResult> SetupAuthenticatedUser()
+    {
+        var auth = await TestAuthHelper.RegisterAndLogin(_client, "settings-user@test.com", "TestPassword123!");
+        TestAuthHelper.SetAuthHeader(_client, auth.AccessToken);
+
+        return auth;
     }
 
     [Fact]
-    public async Task GetSettings_ShouldReturnDefaults_WhenNoSettingsExist()
+    public async Task GetSettings_Authenticated_ShouldReturnDefaults_WhenNoSettingsExist()
     {
         // Arrange
-        var (client, connection) = CreateTestClient();
-        using var _ = connection;
+        await SetupAuthenticatedUser();
 
         // Act
-        var response = await client.GetAsync("/api/settings");
+        var response = await _client.GetAsync("/api/settings");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -58,11 +80,20 @@ public sealed class SettingsEndpointTests
     }
 
     [Fact]
-    public async Task UpdateSettings_ShouldChangeBaseCurrency()
+    public async Task GetSettings_Unauthenticated_ShouldReturn401()
+    {
+        // Act
+        var response = await _client.GetAsync("/api/settings");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateSettings_Authenticated_ShouldChangeBaseCurrency()
     {
         // Arrange
-        var (client, connection) = CreateTestClient();
-        using var _ = connection;
+        await SetupAuthenticatedUser();
 
         var payload = new StringContent(
             JsonSerializer.Serialize(new { baseCurrency = "USD" }),
@@ -70,13 +101,13 @@ public sealed class SettingsEndpointTests
             "application/json");
 
         // Act
-        var response = await client.PutAsync("/api/settings", payload);
+        var response = await _client.PutAsync("/api/settings", payload);
 
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
         // Verify via GET
-        var getResponse = await client.GetFromJsonAsync<SettingsResponse>("/api/settings");
+        var getResponse = await _client.GetFromJsonAsync<SettingsResponse>("/api/settings");
         Assert.NotNull(getResponse);
         Assert.Equal("USD", getResponse.BaseCurrency);
     }
@@ -85,8 +116,7 @@ public sealed class SettingsEndpointTests
     public async Task UpdateSettings_ShouldReturn400_WhenUnsupportedCurrency()
     {
         // Arrange
-        var (client, connection) = CreateTestClient();
-        using var _ = connection;
+        await SetupAuthenticatedUser();
 
         var payload = new StringContent(
             JsonSerializer.Serialize(new { baseCurrency = "JPY" }),
@@ -94,7 +124,7 @@ public sealed class SettingsEndpointTests
             "application/json");
 
         // Act
-        var response = await client.PutAsync("/api/settings", payload);
+        var response = await _client.PutAsync("/api/settings", payload);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -104,8 +134,7 @@ public sealed class SettingsEndpointTests
     public async Task UpdateSettings_ShouldReturn400_WhenEmptyCurrency()
     {
         // Arrange
-        var (client, connection) = CreateTestClient();
-        using var _ = connection;
+        await SetupAuthenticatedUser();
 
         var payload = new StringContent(
             JsonSerializer.Serialize(new { baseCurrency = "" }),
@@ -113,7 +142,7 @@ public sealed class SettingsEndpointTests
             "application/json");
 
         // Act
-        var response = await client.PutAsync("/api/settings", payload);
+        var response = await _client.PutAsync("/api/settings", payload);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -126,8 +155,7 @@ public sealed class SettingsEndpointTests
     public async Task UpdateSettings_AllSupportedCurrencies_ShouldSucceed(string currency)
     {
         // Arrange
-        var (client, connection) = CreateTestClient();
-        using var _ = connection;
+        await SetupAuthenticatedUser();
 
         var payload = new StringContent(
             JsonSerializer.Serialize(new { baseCurrency = currency }),
@@ -135,10 +163,53 @@ public sealed class SettingsEndpointTests
             "application/json");
 
         // Act
-        var response = await client.PutAsync("/api/settings", payload);
+        var response = await _client.PutAsync("/api/settings", payload);
 
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Settings_ShouldBeIsolatedPerUser()
+    {
+        // Arrange — register User A (admin) and set their currency to USD
+        var userA = await TestAuthHelper.RegisterAndLogin(_client, "usera-settings@test.com", "TestPassword123!");
+        TestAuthHelper.SetAuthHeader(_client, userA.AccessToken);
+
+        var payload = new StringContent(
+            JsonSerializer.Serialize(new { baseCurrency = "USD" }),
+            Encoding.UTF8,
+            "application/json");
+        await _client.PutAsync("/api/settings", payload);
+
+        // Register User B via invite code
+        var inviteCode = await CreateInviteCode(userA.AccessToken);
+        var userB = await TestAuthHelper.RegisterWithInviteCode(_client, inviteCode, "userb-settings@test.com", "TestPassword123!");
+        TestAuthHelper.SetAuthHeader(_client, userB.AccessToken);
+
+        // Act — User B gets their own settings (should be default EUR)
+        var response = await _client.GetFromJsonAsync<SettingsResponse>("/api/settings");
+
+        // Assert
+        Assert.NotNull(response);
+        Assert.Equal("EUR", response.BaseCurrency);
+
+        // Switch back to User A — should still be USD
+        TestAuthHelper.SetAuthHeader(_client, userA.AccessToken);
+        var responseA = await _client.GetFromJsonAsync<SettingsResponse>("/api/settings");
+        Assert.NotNull(responseA);
+        Assert.Equal("USD", responseA.BaseCurrency);
+    }
+
+    private async Task<string> CreateInviteCode(string adminAccessToken)
+    {
+        TestAuthHelper.SetAuthHeader(_client, adminAccessToken);
+        var response = await _client.PostAsync("/api/auth/invite-codes", null);
+        response.EnsureSuccessStatusCode();
+        var content = await response.Content.ReadAsStringAsync();
+        var json = JsonSerializer.Deserialize<JsonElement>(content);
+
+        return json.GetProperty("code").GetString()!;
     }
 
     private sealed record SettingsResponse(string BaseCurrency, DateTime UpdatedAt);

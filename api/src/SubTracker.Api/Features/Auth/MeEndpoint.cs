@@ -35,7 +35,7 @@ public sealed class MeEndpoint : EndpointWithoutRequest<MeEndpoint.Response>
 
         if (user is null)
         {
-            await Send.NotFoundAsync(ct);
+            await Send.UnauthorizedAsync(ct);
 
             return;
         }

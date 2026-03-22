@@ -61,7 +61,7 @@ public sealed class ResetPasswordEndpoint(AppDbContext db, IPasswordService pass
 
         if (!user.HasValidResetToken(utcNow))
         {
-            await HttpContext.Response.SendAsync(new { error = "Reset token has expired or is invalid" }, 400, cancellation: ct);
+            await HttpContext.Response.SendAsync(new { error = "Invalid email or token" }, 400, cancellation: ct);
 
             return;
         }

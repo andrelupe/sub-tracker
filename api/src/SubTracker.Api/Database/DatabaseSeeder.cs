@@ -10,11 +10,27 @@ namespace SubTracker.Api.Database;
 
 public static class DatabaseSeeder
 {
-    public static async Task SeedAsync(AppDbContext db)
+    /// <summary>
+    /// Ensures the default admin user exists and migrates orphaned data.
+    /// Runs on EVERY startup (Development and Production).
+    /// </summary>
+    public static async Task EnsureDefaultAdminAsync(AppDbContext db)
     {
         var userId = await EnsureAdminUserAsync(db);
         await MigrateOrphanedRecordsAsync(db, userId);
         await EnsureUserSettingsAsync(db, userId);
+    }
+
+    /// <summary>
+    /// Seeds demo subscriptions. Only runs in Development.
+    /// </summary>
+    public static async Task SeedDemoDataAsync(AppDbContext db)
+    {
+        var userId = await db.Users
+            .Where(u => u.Role == UserRole.Admin)
+            .Select(u => u.Id)
+            .FirstAsync();
+
         await SeedDemoSubscriptionsAsync(db, userId);
     }
 

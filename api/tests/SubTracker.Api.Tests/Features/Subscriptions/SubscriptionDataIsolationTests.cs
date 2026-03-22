@@ -30,6 +30,7 @@ public sealed class SubscriptionDataIsolationTests : IDisposable
             builder.UseSetting("Jwt:Audience", "SubTracker");
             builder.UseSetting("Jwt:AccessTokenExpirationMinutes", "15");
             builder.UseSetting("Jwt:RefreshTokenExpirationDays", "30");
+            builder.UseSetting("SkipSeeding", "true");
 
             builder.ConfigureServices(services =>
             {

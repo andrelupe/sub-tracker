@@ -63,7 +63,7 @@ public sealed class RefreshTokenEndpoint : Endpoint<RefreshTokenEndpoint.Request
 
         if (storedToken is null)
         {
-            await HttpContext.Response.SendAsync(new { error = "Invalid refresh token" }, 401, cancellation: ct);
+            await HttpContext.Response.SendAsync(new { error = "Invalid or expired refresh token" }, 401, cancellation: ct);
 
             return;
         }
@@ -74,7 +74,7 @@ public sealed class RefreshTokenEndpoint : Endpoint<RefreshTokenEndpoint.Request
             _db.RefreshTokens.Remove(storedToken);
             await _db.SaveChangesAsync(ct);
 
-            await HttpContext.Response.SendAsync(new { error = "Refresh token has expired" }, 401, cancellation: ct);
+            await HttpContext.Response.SendAsync(new { error = "Invalid or expired refresh token" }, 401, cancellation: ct);
 
             return;
         }

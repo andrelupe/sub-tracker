@@ -1,9 +1,11 @@
+using System.Security.Cryptography;
 using System.Text;
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using NSwag;
 using Serilog;
 using SubTracker.Api.Common;
 using SubTracker.Api.Database;
@@ -37,13 +39,36 @@ try
     builder.Host.UseSerilog((ctx, config) =>
         config.ReadFrom.Configuration(ctx.Configuration));
 
+    // JWT Secret Validation — ensure a valid secret exists
+    var jwtSecret = builder.Configuration["Jwt:Secret"];
+    if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret == "CHANGE-THIS-TO-A-SECURE-SECRET-AT-LEAST-32-CHARS" || jwtSecret.Length < 32)
+    {
+        jwtSecret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(48));
+        builder.Configuration["Jwt:Secret"] = jwtSecret;
+        Log.Warning("JWT secret auto-generated. Set Jwt__Secret env var for production");
+    }
+
     // Database
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
 
-    // FastEndpoints
+    // FastEndpoints + Swagger with JWT support
     builder.Services.AddFastEndpoints();
-    builder.Services.SwaggerDocument();
+    builder.Services.SwaggerDocument(o =>
+    {
+        o.DocumentSettings = s =>
+        {
+            s.Title = "SubTracker API";
+            s.Version = "v3.0";
+            s.AddAuth("Bearer", new OpenApiSecurityScheme
+            {
+                Type = OpenApiSecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                Description = "Enter your JWT access token"
+            });
+        };
+    });
 
     // JWT Authentication
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -94,15 +119,22 @@ try
 
     var app = builder.Build();
 
-    // Auto-migrate & seed
+    // Auto-migrate, ensure admin, seed demo data
     using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         await db.Database.MigrateAsync();
 
-        if (app.Environment.IsDevelopment())
+        var skipSeeding = app.Configuration.GetValue<bool>("SkipSeeding");
+        if (!skipSeeding)
         {
-            await DatabaseSeeder.SeedAsync(db);
+            // Always ensure default admin exists and orphaned data is migrated
+            await DatabaseSeeder.EnsureDefaultAdminAsync(db);
+
+            if (app.Environment.IsDevelopment())
+            {
+                await DatabaseSeeder.SeedDemoDataAsync(db);
+            }
         }
     }
 

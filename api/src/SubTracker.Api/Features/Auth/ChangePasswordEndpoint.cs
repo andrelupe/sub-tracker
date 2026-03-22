@@ -49,7 +49,7 @@ public sealed class ChangePasswordEndpoint(AppDbContext db, IPasswordService pas
 
         if (user is null)
         {
-            await Send.NotFoundAsync(ct);
+            await Send.UnauthorizedAsync(ct);
 
             return;
         }

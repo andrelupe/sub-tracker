@@ -26,6 +26,14 @@ else
 fi
 
 # ============================================
+# Auto-generate JWT secret if not provided
+# ============================================
+if [ -z "$Jwt__Secret" ]; then
+  export Jwt__Secret=$(openssl rand -base64 48)
+  echo "WARNING: JWT secret auto-generated. Set Jwt__Secret env var for production."
+fi
+
+# ============================================
 # Start the .NET API in background
 # ============================================
 cd /app/api

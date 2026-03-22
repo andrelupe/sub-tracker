@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using SubTracker.Api.Database;
 using SubTracker.Api.Features.Auth.Domain;
 using SubTracker.Api.Features.Auth.Services;
-using SubTracker.Api.Features.Settings.Domain;
 using SubTracker.Api.Features.Subscriptions.Domain;
 
 namespace SubTracker.Api.Tests.Database;

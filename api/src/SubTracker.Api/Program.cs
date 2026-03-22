@@ -41,6 +41,7 @@ try
 
     // JWT Secret Validation — ensure a valid secret exists
     var jwtSecret = builder.Configuration["Jwt:Secret"];
+
     if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret == "CHANGE-THIS-TO-A-SECURE-SECRET-AT-LEAST-32-CHARS" || jwtSecret.Length < 32)
     {
         jwtSecret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(48));
@@ -126,6 +127,7 @@ try
         await db.Database.MigrateAsync();
 
         var skipSeeding = app.Configuration.GetValue<bool>("SkipSeeding");
+
         if (!skipSeeding)
         {
             // Always ensure default admin exists and orphaned data is migrated

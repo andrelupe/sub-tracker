@@ -1,6 +1,5 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using SubTracker.Api.Common;
 using SubTracker.Api.Database;
 using SubTracker.Api.Features.Auth.Domain;
 using SubTracker.Api.Features.Auth.Services;
@@ -100,6 +99,7 @@ public sealed class CleanupExpiredTokensJobTests : IDisposable
         {
             user.ClearResetToken(utcNow);
         }
+
         await _db.SaveChangesAsync();
 
         // Assert

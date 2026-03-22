@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using SubTracker.Api.Database;
-using SubTracker.Api.Features.Auth.Domain;
 
 namespace SubTracker.Api.Tests.Features.Settings;
 

@@ -55,5 +55,6 @@ public static class TestAuthHelper
     public sealed record AuthResult(string AccessToken, string UserId, string Email, string Role);
 
     private sealed record AuthResponseDto(string AccessToken, string RefreshToken, int ExpiresIn, UserResponseDto User);
+
     private sealed record UserResponseDto(Guid Id, string Email, string Role);
 }

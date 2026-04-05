@@ -89,7 +89,7 @@ class SubscriptionApiService {
     List<Map<String, dynamic>> subscriptions,
   ) async {
     // Backend expects: {"subscriptions": [...]}
-    await _apiService.post('/subscriptions/import', {
+    await _apiService.post<Map<String, dynamic>>('/subscriptions/import', {
       'subscriptions': subscriptions,
     });
   }

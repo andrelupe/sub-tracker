@@ -17,6 +17,7 @@ class AuthFormField extends StatelessWidget {
     this.validator,
     this.autofocus = false,
     this.autofillHints,
+    this.onFieldSubmitted,
   });
 
   final TextEditingController controller;
@@ -29,20 +30,28 @@ class AuthFormField extends StatelessWidget {
   final bool autofocus;
   final Iterable<String>? autofillHints;
 
+  /// Called when the user submits the field (e.g. presses Enter).
+  final ValueChanged<String>? onFieldSubmitted;
+
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hintText,
+    return Semantics(
+      label: label,
+      textField: true,
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hintText,
+        ),
+        obscureText: obscureText,
+        keyboardType: keyboardType,
+        textInputAction: textInputAction,
+        validator: validator,
+        autofocus: autofocus,
+        autofillHints: autofillHints,
+        onFieldSubmitted: onFieldSubmitted,
       ),
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      textInputAction: textInputAction,
-      validator: validator,
-      autofocus: autofocus,
-      autofillHints: autofillHints,
     );
   }
 }

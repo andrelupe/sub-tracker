@@ -110,11 +110,14 @@ class AuthApiService {
   }
 
   /// Admin: requests a password reset token for a user.
-  Future<void> requestPasswordReset(String email) async {
-    await _api.post<Map<String, dynamic>>(
+  ///
+  /// Returns the plain-text reset token that should be shared with the user.
+  Future<String> requestPasswordReset(String email) async {
+    final response = await _api.post<Map<String, dynamic>>(
       '/auth/request-password-reset',
       {'email': email},
     );
+    return response['token'] as String;
   }
 }
 

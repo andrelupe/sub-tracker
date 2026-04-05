@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:subtracker/core/widgets/centered_content.dart';
 import 'package:subtracker/features/settings/widgets/about_section.dart';
+import 'package:subtracker/features/settings/widgets/account_section.dart';
+import 'package:subtracker/features/settings/widgets/admin_section.dart';
 import 'package:subtracker/features/settings/widgets/analytics_toggle.dart';
 import 'package:subtracker/features/settings/widgets/currency_selector.dart';
 import 'package:subtracker/features/settings/widgets/export_button.dart';
 import 'package:subtracker/features/settings/widgets/import_button.dart';
 import 'package:subtracker/features/settings/widgets/theme_selector.dart';
 
-/// Settings screen with theme selection, data management and about info.
+/// Settings screen with account info, theme selection, data management
+/// and about info. Admin users also see an Administration section.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -24,6 +27,10 @@ class SettingsScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.symmetric(vertical: 16),
           children: [
+            const AccountSection(),
+            const SizedBox(height: 24),
+            const AdminSection(),
+            const SizedBox(height: 24),
             const ThemeSelector(),
             const SizedBox(height: 24),
             const CurrencySelector(),

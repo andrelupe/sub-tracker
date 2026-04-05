@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:subtracker/core/router/app_router.dart';
+import 'package:subtracker/core/services/api_service.dart';
 import 'package:subtracker/features/auth/services/auth_api_service.dart';
 import 'package:subtracker/features/auth/widgets/auth_form_field.dart';
+import 'package:subtracker/features/auth/widgets/auth_layout.dart';
 import 'package:subtracker/features/auth/widgets/auth_submit_button.dart';
 
 /// Email validation pattern.
@@ -74,7 +76,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Reset failed: $error'),
+            content: Text(_userFriendlyError(error)),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -86,118 +88,128 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     }
   }
 
+  String _userFriendlyError(Object error) {
+    if (error is ApiException) {
+      if (error.statusCode == 400) return 'Invalid or expired reset token.';
+      if (error.statusCode == 0) {
+        return 'Could not connect to the server. Check your connection.';
+      }
+      return error.message;
+    }
+    return 'An unexpected error occurred. Please try again.';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.lock_reset_rounded,
-                    size: 64,
-                    color: theme.colorScheme.primary,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Reset Password',
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Enter the reset token from your admin',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  AuthFormField(
-                    controller: _emailController,
-                    label: 'Email',
-                    hintText: 'you@example.com',
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    autofocus: true,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter your email';
-                      }
-                      if (!_emailRegExp.hasMatch(value.trim())) {
-                        return 'Please enter a valid email';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  AuthFormField(
-                    controller: _tokenController,
-                    label: 'Reset Token',
-                    hintText: 'Paste your reset token',
-                    textInputAction: TextInputAction.next,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter the reset token';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  AuthFormField(
-                    controller: _passwordController,
-                    label: 'New Password',
-                    obscureText: true,
-                    textInputAction: TextInputAction.next,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a new password';
-                      }
-                      if (value.length < 8) {
-                        return 'Password must be at least 8 characters';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  AuthFormField(
-                    controller: _confirmPasswordController,
-                    label: 'Confirm New Password',
-                    obscureText: true,
-                    textInputAction: TextInputAction.done,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please confirm your password';
-                      }
-                      if (value != _passwordController.text) {
-                        return 'Passwords do not match';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  AuthSubmitButton(
-                    onPressed: _resetPassword,
-                    label: 'Reset Password',
-                    loadingLabel: 'Resetting...',
-                    isLoading: _isLoading,
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () => context.go(AppRoutes.login),
-                    child: const Text('Back to login'),
-                  ),
-                ],
+    return AuthLayout(
+      child: Semantics(
+        label: 'Reset password form',
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.lock_reset_rounded,
+                size: 64,
+                color: theme.colorScheme.primary,
               ),
-            ),
+              const SizedBox(height: 16),
+              Text(
+                'Reset Password',
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Enter the reset token from your admin',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 32),
+              AuthFormField(
+                controller: _emailController,
+                label: 'Email',
+                hintText: 'you@example.com',
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                autofocus: true,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter your email';
+                  }
+                  if (!_emailRegExp.hasMatch(value.trim())) {
+                    return 'Please enter a valid email';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              AuthFormField(
+                controller: _tokenController,
+                label: 'Reset Token',
+                hintText: 'Paste your reset token',
+                textInputAction: TextInputAction.next,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter the reset token';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              AuthFormField(
+                controller: _passwordController,
+                label: 'New Password',
+                obscureText: true,
+                textInputAction: TextInputAction.next,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a new password';
+                  }
+                  if (value.length < 8) {
+                    return 'Password must be at least 8 characters';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              AuthFormField(
+                controller: _confirmPasswordController,
+                label: 'Confirm New Password',
+                obscureText: true,
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _resetPassword(),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please confirm your password';
+                  }
+                  if (value != _passwordController.text) {
+                    return 'Passwords do not match';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
+              AuthSubmitButton(
+                onPressed: _resetPassword,
+                label: 'Reset Password',
+                loadingLabel: 'Resetting...',
+                isLoading: _isLoading,
+              ),
+              const SizedBox(height: 16),
+              Tooltip(
+                message: 'Return to login screen',
+                child: TextButton(
+                  onPressed: () => context.go(AppRoutes.login),
+                  child: const Text('Back to login'),
+                ),
+              ),
+            ],
           ),
         ),
       ),

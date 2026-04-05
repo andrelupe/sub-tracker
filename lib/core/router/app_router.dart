@@ -3,6 +3,11 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:subtracker/core/widgets/scaffold_with_navigation.dart';
 import 'package:subtracker/features/analytics/screens/analytics_screen.dart';
+import 'package:subtracker/features/auth/models/auth_state.dart';
+import 'package:subtracker/features/auth/providers/auth_providers.dart';
+import 'package:subtracker/features/auth/screens/login_screen.dart';
+import 'package:subtracker/features/auth/screens/register_screen.dart';
+import 'package:subtracker/features/auth/screens/reset_password_screen.dart';
 import 'package:subtracker/features/settings/providers/settings_providers.dart';
 import 'package:subtracker/features/settings/screens/settings_screen.dart';
 import 'package:subtracker/features/subscriptions/screens/home_screen.dart';
@@ -16,25 +21,29 @@ abstract class AppRoutes {
   static const addSubscription = '/subscription/add';
   static const editSubscription = '/subscription/edit/:id';
   static const settings = '/settings';
+  static const login = '/login';
+  static const register = '/register';
+  static const resetPassword = '/reset-password';
 
   static String editSubscriptionPath(String id) => '/subscription/edit/$id';
+
+  /// Routes that do not require authentication.
+  static const publicRoutes = [login, register, resetPassword];
 }
 
 @riverpod
 GoRouter appRouter(AppRouterRef ref) {
-  // Read the initial value once — the router is created only once.
-  // We listen for changes and call router.refresh() so that the redirect
-  // re-evaluates without recreating the entire GoRouter (which would lose
-  // the current location).
-  final refreshNotifier = ValueNotifier<bool>(
-    ref.read(analyticsEnabledNotifierProvider),
-  );
+  // A single ValueNotifier drives refreshListenable so the redirect
+  // re-evaluates whenever auth state or analytics toggle changes,
+  // without recreating the GoRouter (which would lose current location).
+  final refreshNotifier = _RouterRefreshNotifier();
 
   ref
-    ..listen(analyticsEnabledNotifierProvider, (_, next) {
-      refreshNotifier.value = next;
-      // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
-      refreshNotifier.notifyListeners();
+    ..listen(authNotifierProvider, (_, __) {
+      refreshNotifier.notify();
+    })
+    ..listen(analyticsEnabledNotifierProvider, (_, __) {
+      refreshNotifier.notify();
     })
     ..onDispose(refreshNotifier.dispose);
 
@@ -42,13 +51,50 @@ GoRouter appRouter(AppRouterRef ref) {
     initialLocation: AppRoutes.home,
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
-      final analyticsEnabled = refreshNotifier.value;
-      if (!analyticsEnabled && state.matchedLocation == AppRoutes.analytics) {
+      final authState = ref.read(authNotifierProvider);
+      final matchedLocation = state.matchedLocation;
+      final isPublicRoute = AppRoutes.publicRoutes.contains(matchedLocation);
+
+      // While auth is initialising, don't redirect — wait.
+      if (authState.status == AuthStatus.loading) return null;
+
+      // Not authenticated → force login (unless already on a public route).
+      if (!authState.isAuthenticated && !isPublicRoute) {
+        return AppRoutes.login;
+      }
+
+      // Authenticated → redirect away from public routes.
+      if (authState.isAuthenticated && isPublicRoute) {
         return AppRoutes.home;
       }
+
+      // Analytics toggle redirect.
+      final analyticsEnabled = ref.read(analyticsEnabledNotifierProvider);
+      if (!analyticsEnabled && matchedLocation == AppRoutes.analytics) {
+        return AppRoutes.home;
+      }
+
       return null;
     },
     routes: [
+      // ── Public routes (outside the shell) ──────────────────────────
+      GoRoute(
+        path: AppRoutes.login,
+        name: 'login',
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.register,
+        name: 'register',
+        builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.resetPassword,
+        name: 'resetPassword',
+        builder: (context, state) => const ResetPasswordScreen(),
+      ),
+
+      // ── Authenticated shell ────────────────────────────────────────
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return ScaffoldWithNavigation(
@@ -107,4 +153,12 @@ GoRouter appRouter(AppRouterRef ref) {
   );
 
   return router;
+}
+
+/// Lightweight [ChangeNotifier] used to trigger GoRouter's refreshListenable
+/// whenever auth state or other watched values change.
+class _RouterRefreshNotifier extends ChangeNotifier {
+  void notify() {
+    notifyListeners();
+  }
 }

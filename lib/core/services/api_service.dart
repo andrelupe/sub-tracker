@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -38,6 +39,9 @@ class ApiService {
   /// Callback invoked when a 401 cannot be recovered.
   final OnAuthFailureCallback? _onAuthFailure;
 
+  /// Guards concurrent refresh attempts so only one runs at a time.
+  Completer<bool>? _refreshInProgress;
+
   // ---------------------------------------------------------------------------
   // Headers
   // ---------------------------------------------------------------------------
@@ -61,18 +65,42 @@ class ApiService {
   // 401 interceptor
   // ---------------------------------------------------------------------------
 
+  /// Performs a single token refresh, coalescing concurrent callers so that
+  /// only one actual refresh happens at a time.
+  Future<bool> _refreshOnce() async {
+    if (_refreshInProgress != null) {
+      return _refreshInProgress!.future;
+    }
+
+    _refreshInProgress = Completer<bool>();
+    try {
+      final result = await _refreshToken!();
+      _refreshInProgress!.complete(result);
+      return result;
+    } catch (_) {
+      _refreshInProgress!.complete(false);
+      return false;
+    } finally {
+      _refreshInProgress = null;
+    }
+  }
+
   /// Executes [request]. On a 401 response, attempts a token refresh and
   /// retries once. If the refresh fails, calls [_onAuthFailure] and throws.
+  ///
+  /// **Important**: [request] must re-compute headers on each invocation so
+  /// that the retry picks up the refreshed token.
   Future<http.Response> _withAuthRetry(
     Future<http.Response> Function() request,
   ) async {
     var response = await request();
 
     if (response.statusCode == 401 && _refreshToken != null) {
-      final refreshed = await _refreshToken();
+      final refreshed = await _refreshOnce();
 
       if (refreshed) {
-        // Retry the original request with the new token.
+        // Retry the original request — the closure re-reads the token from
+        // storage via _headers(), so it will use the new access token.
         response = await request();
       } else {
         await _onAuthFailure?.call();
@@ -96,10 +124,12 @@ class ApiService {
   }) async {
     try {
       final uri = Uri.parse('$_baseUrl$endpoint');
-      final headers = await _headers();
 
       final response = await _withAuthRetry(
-        () => _client.get(uri, headers: headers).timeout(_timeout),
+        () async {
+          final headers = await _headers();
+          return _client.get(uri, headers: headers).timeout(_timeout);
+        },
       );
 
       if (response.statusCode == 200) {
@@ -133,10 +163,12 @@ class ApiService {
   ) async {
     try {
       final uri = Uri.parse('$_baseUrl$endpoint');
-      final headers = await _headers();
 
       final response = await _withAuthRetry(
-        () => _client.get(uri, headers: headers).timeout(_timeout),
+        () async {
+          final headers = await _headers();
+          return _client.get(uri, headers: headers).timeout(_timeout);
+        },
       );
 
       if (response.statusCode == 200) {
@@ -164,12 +196,15 @@ class ApiService {
   }) async {
     try {
       final uri = Uri.parse('$_baseUrl$endpoint');
-      final headers = await _headers(contentType: 'application/json');
+      final body = json.encode(data);
 
       final response = await _withAuthRetry(
-        () => _client
-            .post(uri, headers: headers, body: json.encode(data))
-            .timeout(_timeout),
+        () async {
+          final headers = await _headers(contentType: 'application/json');
+          return _client.post(uri, headers: headers, body: body).timeout(
+                _timeout,
+              );
+        },
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -198,12 +233,15 @@ class ApiService {
   Future<void> put(String endpoint, Map<String, dynamic> data) async {
     try {
       final uri = Uri.parse('$_baseUrl$endpoint');
-      final headers = await _headers(contentType: 'application/json');
+      final body = json.encode(data);
 
       final response = await _withAuthRetry(
-        () => _client
-            .put(uri, headers: headers, body: json.encode(data))
-            .timeout(_timeout),
+        () async {
+          final headers = await _headers(contentType: 'application/json');
+          return _client.put(uri, headers: headers, body: body).timeout(
+                _timeout,
+              );
+        },
       );
 
       if (response.statusCode == 204) {
@@ -230,10 +268,12 @@ class ApiService {
   Future<void> delete(String endpoint) async {
     try {
       final uri = Uri.parse('$_baseUrl$endpoint');
-      final headers = await _headers();
 
       final response = await _withAuthRetry(
-        () => _client.delete(uri, headers: headers).timeout(_timeout),
+        () async {
+          final headers = await _headers();
+          return _client.delete(uri, headers: headers).timeout(_timeout);
+        },
       );
 
       if (response.statusCode == 204) {

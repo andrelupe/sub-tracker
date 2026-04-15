@@ -307,5 +307,174 @@ void main() {
 
       expect(requestCount, 2);
     });
+
+    test('retry uses refreshed token (headers re-computed)', () async {
+      var currentToken = 'expired-token';
+      final capturedTokens = <String?>[];
+
+      final mockClient = MockClient((request) async {
+        capturedTokens.add(request.headers['Authorization']);
+        if (capturedTokens.length == 1) {
+          return http.Response('Unauthorized', 401);
+        }
+        return http.Response(json.encode([]), 200);
+      });
+
+      final apiService = ApiService(
+        baseUrl: 'http://localhost',
+        client: mockClient,
+        getToken: () async => currentToken,
+        refreshToken: () async {
+          currentToken = 'fresh-token';
+          return true;
+        },
+      );
+
+      await apiService.getList('/test', (json) => json);
+
+      expect(capturedTokens, hasLength(2));
+      expect(capturedTokens[0], 'Bearer expired-token');
+      expect(capturedTokens[1], 'Bearer fresh-token');
+    });
+
+    test('retry on POST uses refreshed token', () async {
+      var currentToken = 'expired-token';
+      final capturedTokens = <String?>[];
+
+      final mockClient = MockClient((request) async {
+        capturedTokens.add(request.headers['Authorization']);
+        if (capturedTokens.length == 1) {
+          return http.Response('Unauthorized', 401);
+        }
+        return http.Response(json.encode({'id': '1'}), 201);
+      });
+
+      final apiService = ApiService(
+        baseUrl: 'http://localhost',
+        client: mockClient,
+        getToken: () async => currentToken,
+        refreshToken: () async {
+          currentToken = 'fresh-token';
+          return true;
+        },
+      );
+
+      await apiService.post<Map<String, dynamic>>('/test', {'a': 'b'});
+
+      expect(capturedTokens[0], 'Bearer expired-token');
+      expect(capturedTokens[1], 'Bearer fresh-token');
+    });
+  });
+
+  group('ApiService concurrent refresh coalescing', () {
+    test('only one refresh runs when multiple 401s arrive simultaneously',
+        () async {
+      var refreshCount = 0;
+      var currentToken = 'expired';
+
+      final mockClient = MockClient((request) async {
+        // First two requests (one per endpoint) return 401.
+        // After refresh, the retries succeed.
+        if (request.headers['Authorization'] == 'Bearer expired') {
+          return http.Response('Unauthorized', 401);
+        }
+        return http.Response(json.encode([]), 200);
+      });
+
+      final apiService = ApiService(
+        baseUrl: 'http://localhost',
+        client: mockClient,
+        getToken: () async => currentToken,
+        refreshToken: () async {
+          refreshCount++;
+          // Simulate async delay of actual refresh
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+          currentToken = 'fresh';
+          return true;
+        },
+      );
+
+      // Launch two requests concurrently — both will get 401 and
+      // trigger refresh, but only one actual refresh should run.
+      final results = await Future.wait([
+        apiService.getList('/a', (json) => json),
+        apiService.getList('/b', (json) => json),
+      ]);
+
+      expect(results[0], isEmpty);
+      expect(results[1], isEmpty);
+      expect(refreshCount, 1, reason: 'only one refresh should have run');
+    });
+
+    test('second concurrent caller gets result of first refresh', () async {
+      var refreshCount = 0;
+      var currentToken = 'old';
+
+      final mockClient = MockClient((request) async {
+        if (request.headers['Authorization'] == 'Bearer old') {
+          return http.Response('Unauthorized', 401);
+        }
+        return http.Response(json.encode({'ok': true}), 200);
+      });
+
+      final apiService = ApiService(
+        baseUrl: 'http://localhost',
+        client: mockClient,
+        getToken: () async => currentToken,
+        refreshToken: () async {
+          refreshCount++;
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+          currentToken = 'new';
+          return true;
+        },
+      );
+
+      final results = await Future.wait([
+        apiService.get<Map<String, dynamic>>('/x'),
+        apiService.get<Map<String, dynamic>>('/y'),
+      ]);
+
+      expect(results[0]['ok'], isTrue);
+      expect(results[1]['ok'], isTrue);
+      expect(refreshCount, 1);
+    });
+
+    test('all concurrent callers fail when refresh fails', () async {
+      var refreshCount = 0;
+
+      final mockClient = MockClient((request) async {
+        return http.Response('Unauthorized', 401);
+      });
+
+      final apiService = ApiService(
+        baseUrl: 'http://localhost',
+        client: mockClient,
+        getToken: () async => 'expired',
+        refreshToken: () async {
+          refreshCount++;
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+          return false;
+        },
+        onAuthFailure: () async {},
+      );
+
+      final futures = [
+        apiService.get<Map<String, dynamic>>('/a'),
+        apiService.get<Map<String, dynamic>>('/b'),
+      ];
+
+      for (final future in futures) {
+        expect(
+          () => future,
+          throwsA(
+            isA<ApiException>().having((e) => e.statusCode, 'statusCode', 401),
+          ),
+        );
+      }
+
+      // Wait for all async operations to complete.
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(refreshCount, 1, reason: 'only one refresh should have run');
+    });
   });
 }

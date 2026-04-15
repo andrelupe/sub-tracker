@@ -8,6 +8,7 @@ import 'package:subtracker/features/auth/providers/auth_providers.dart';
 import 'package:subtracker/features/auth/screens/login_screen.dart';
 import 'package:subtracker/features/auth/screens/register_screen.dart';
 import 'package:subtracker/features/auth/screens/reset_password_screen.dart';
+import 'package:subtracker/features/auth/screens/splash_screen.dart';
 import 'package:subtracker/features/settings/providers/settings_providers.dart';
 import 'package:subtracker/features/settings/screens/settings_screen.dart';
 import 'package:subtracker/features/subscriptions/screens/home_screen.dart';
@@ -24,6 +25,7 @@ abstract class AppRoutes {
   static const login = '/login';
   static const register = '/register';
   static const resetPassword = '/reset-password';
+  static const splash = '/splash';
 
   static String editSubscriptionPath(String id) => '/subscription/edit/$id';
 
@@ -54,9 +56,21 @@ GoRouter appRouter(AppRouterRef ref) {
       final authState = ref.read(authNotifierProvider);
       final matchedLocation = state.matchedLocation;
       final isPublicRoute = AppRoutes.publicRoutes.contains(matchedLocation);
+      final isSplash = matchedLocation == AppRoutes.splash;
 
-      // While auth is initialising, don't redirect — wait.
-      if (authState.status == AuthStatus.loading) return null;
+      // While auth is initialising, redirect protected routes to splash
+      // so that no API-calling widgets build before we have a valid
+      // token. Public routes (login, register) are allowed through.
+      // Once auth resolves the refreshListenable fires and we re-evaluate.
+      if (authState.status == AuthStatus.loading) {
+        if (isPublicRoute || isSplash) return null;
+        return AppRoutes.splash;
+      }
+
+      // Auth resolved — redirect away from splash.
+      if (isSplash) {
+        return authState.isAuthenticated ? AppRoutes.home : AppRoutes.login;
+      }
 
       // Not authenticated → force login (unless already on a public route).
       if (!authState.isAuthenticated && !isPublicRoute) {
@@ -77,6 +91,13 @@ GoRouter appRouter(AppRouterRef ref) {
       return null;
     },
     routes: [
+      // ── Splash (shown while auth is loading) ───────────────────────
+      GoRoute(
+        path: AppRoutes.splash,
+        name: 'splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
+
       // ── Public routes (outside the shell) ──────────────────────────
       GoRoute(
         path: AppRoutes.login,
